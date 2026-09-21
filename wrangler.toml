@@ -3,6 +3,9 @@ main = "src/index.ts"
 compatibility_date = "2026-09-01"
 compatibility_flags = ["nodejs_compat"]
 
+[triggers]
+crons = ["*/5 * * * *"]
+
 [vars]
 SUPABASE_URL = "https://sbmvjrfswhbkioynrajd.supabase.co"
 # Anon/publishable key do grupo.02 — pública por design, protegida pelo RLS.
@@ -14,5 +17,11 @@ AREA = "04"
 # repositório no GitHub — não precisa rodar `wrangler secret put` manualmente.
 #   AREA04_DB_URL       — conexão Postgres com o papel restrito
 #                         `area04_backend` no grupo.01 (leitura ampla +
-#                         escrita só em certificados.status)
+#                         escrita em certificados.status/avaliado_em e
+#                         avaliacoes.notificada_em)
+#   AREA04_ADMIN_DB_URL — conexão Postgres com o papel restrito
+#                         `area04_notifier` no próprio grupo.02, usada só
+#                         pelo Cron Trigger (sem JWT de admin) para
+#                         executar a função broadcast_notificacao_admin
 #   ADMIN_SIGNUP_CODE   — código exigido para criar uma conta de admin
+#   RESEND_API_KEY      — chave da API do Resend para envio de e-mails

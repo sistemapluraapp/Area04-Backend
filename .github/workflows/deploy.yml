@@ -17,7 +17,9 @@ jobs:
       - name: Set Worker secrets
         run: |
           echo "${{ secrets.AREA04_DB_URL }}" | npx wrangler secret put AREA04_DB_URL
+          echo "${{ secrets.AREA04_ADMIN_DB_URL }}" | npx wrangler secret put AREA04_ADMIN_DB_URL
           echo "${{ secrets.ADMIN_SIGNUP_CODE }}" | npx wrangler secret put ADMIN_SIGNUP_CODE
+          echo "${{ secrets.RESEND_API_KEY }}" | npx wrangler secret put RESEND_API_KEY
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

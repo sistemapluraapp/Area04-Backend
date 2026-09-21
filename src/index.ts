@@ -7,7 +7,14 @@ import { listarUsuarios, listarGovContas, listarPaginas, excluirConta } from './
 import { listarSinalizadas } from './routes/avaliacoes'
 import { listarPendentes, atualizarStatus } from './routes/certificados'
 import { criarConvite, listarConvites } from './routes/convitesGov'
-import type { AppEnv } from './types'
+import {
+  listarNotificacoes,
+  contarNaoLidas,
+  marcarLida,
+  marcarTodasLidas,
+} from './routes/notificacoes'
+import { processarAvaliacoesSinalizadas } from './lib/cron'
+import type { AppEnv, Bindings } from './types'
 
 const app = new Hono<AppEnv>()
 
@@ -39,4 +46,14 @@ app.patch('/certificados/:id', atualizarStatus)
 app.post('/convites-gov', criarConvite)
 app.get('/convites-gov', listarConvites)
 
-export default app
+app.get('/notificacoes', listarNotificacoes)
+app.get('/notificacoes/contagem-nao-lidas', contarNaoLidas)
+app.patch('/notificacoes/:id/ler', marcarLida)
+app.patch('/notificacoes/marcar-todas-lidas', marcarTodasLidas)
+
+export default {
+  fetch: app.fetch,
+  scheduled: async (_event: ScheduledEvent, env: Bindings, ctx: ExecutionContext) => {
+    ctx.waitUntil(processarAvaliacoesSinalizadas(env))
+  },
+}
