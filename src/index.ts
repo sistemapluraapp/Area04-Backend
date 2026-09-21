@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { requireAuth } from './middleware/auth'
-import { signup, login } from './routes/auth'
+import { signup, login, refresh } from './routes/auth'
 import { indicadores } from './routes/indicadores'
 import { listarUsuarios, listarGovContas, listarPaginas, excluirConta } from './routes/contas'
 import { listarSinalizadas } from './routes/avaliacoes'
@@ -24,9 +24,10 @@ app.get('/health', (c) => c.json({ status: 'ok', area: c.env.AREA, service: 'bac
 
 app.post('/auth/signup', signup)
 app.post('/auth/login', login)
+app.post('/auth/refresh', refresh)
 
 app.use('*', async (c, next) => {
-  const publicas = ['/health', '/auth/login', '/auth/signup']
+  const publicas = ['/health', '/auth/login', '/auth/signup', '/auth/refresh']
   if (publicas.includes(c.req.path)) return next()
   return requireAuth(c, next)
 })
