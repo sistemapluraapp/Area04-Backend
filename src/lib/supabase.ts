@@ -1,17 +1,17 @@
 import { createClient } from '@supabase/supabase-js'
 import type { Context } from 'hono'
+import type { AppEnv } from '../types'
 
-type Env = {
-  SUPABASE_URL: string
-  SUPABASE_ANON_KEY: string
+// Cliente do próprio grupo.02 (contas de admin, isoladas).
+export function getAnonClient(c: Context<AppEnv>) {
+  return createClient(c.env.SUPABASE_URL, c.env.SUPABASE_ANON_KEY, {
+    auth: { persistSession: false },
+  })
 }
 
-// Cliente do próprio grupo.02 (dados isolados da Área 04).
-export function getSupabaseClient(c: Context<{ Bindings: Env }>) {
-  return createClient(c.env.SUPABASE_URL, c.env.SUPABASE_ANON_KEY)
+export function getUserClient(c: Context<AppEnv>, accessToken: string) {
+  return createClient(c.env.SUPABASE_URL, c.env.SUPABASE_ANON_KEY, {
+    auth: { persistSession: false },
+    global: { headers: { Authorization: `Bearer ${accessToken}` } },
+  })
 }
-
-// Acesso cross-projeto ao grupo.01 (leitura + escrita restrita em
-// certificados.status) via o papel `area04_backend` — a implementar na
-// Fase 3/4 usando uma conexão Postgres direta (ex.: Cloudflare Hyperdrive),
-// nunca a service_role key inteira do grupo.01.
