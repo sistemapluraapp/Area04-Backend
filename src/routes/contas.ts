@@ -24,7 +24,7 @@ export async function listarPaginas(c: Context<AppEnv>) {
 }
 
 export async function excluirConta(c: Context<AppEnv>) {
-  const id = c.req.param('id')
+  const id = c.req.param('id') as string
   const sql = getDb(c.env.AREA04_DB_URL)
 
   // Apaga o auth.users; usuarios/gov_contas têm ON DELETE CASCADE a partir

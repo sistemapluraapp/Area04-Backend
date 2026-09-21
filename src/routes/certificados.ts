@@ -15,16 +15,17 @@ export async function listarPendentes(c: Context<AppEnv>) {
 }
 
 export async function atualizarStatus(c: Context<AppEnv>) {
-  const id = c.req.param('id')
+  const id = c.req.param('id') as string
   const body = await c.req.json<{ status?: string }>().catch(() => null)
 
-  if (body?.status !== 'aprovado' && body?.status !== 'reprovado') {
+  if (!body || (body.status !== 'aprovado' && body.status !== 'reprovado')) {
     return c.json({ error: "Campo obrigatório: status ('aprovado' ou 'reprovado')" }, 400)
   }
+  const status = body.status
 
   const sql = getDb(c.env.AREA04_DB_URL)
   const [certificado] = await sql`
-    update certificados set status = ${body.status} where id = ${id}
+    update certificados set status = ${status} where id = ${id}
     returning id, pagina_id, status, solicitado_em, avaliado_em
   `
 
