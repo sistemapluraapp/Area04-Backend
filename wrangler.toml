@@ -5,12 +5,14 @@ compatibility_flags = ["nodejs_compat"]
 
 [vars]
 SUPABASE_URL = "https://sbmvjrfswhbkioynrajd.supabase.co"
+# Anon/publishable key do grupo.02 — pública por design, protegida pelo RLS.
+SUPABASE_ANON_KEY = "sb_publishable_xg7SFgfKYw1z35VM3UPd_w_iA-LpXJ7"
 AREA = "04"
 
-# Secrets — nunca commitar aqui. Configurar com `wrangler secret put <NOME>`
-# ou como secret do repositório no GitHub Actions:
-#   SUPABASE_ANON_KEY               (grupo.02, projeto local desta área)
-#   AREA04_CROSSPROJECT_DB_URL      (conexão Postgres com o papel restrito
-#                                    `area04_backend` no grupo.01 — leitura +
-#                                    escrita apenas em certificados.status;
-#                                    ver Fase 4 / item 4 do plano de ação)
+# Secrets de verdade (nunca commitados): configurados automaticamente pelo
+# workflow de deploy (.github/workflows/deploy.yml) a partir de secrets do
+# repositório no GitHub — não precisa rodar `wrangler secret put` manualmente.
+#   AREA04_DB_URL       — conexão Postgres com o papel restrito
+#                         `area04_backend` no grupo.01 (leitura ampla +
+#                         escrita só em certificados.status)
+#   ADMIN_SIGNUP_CODE   — código exigido para criar uma conta de admin
