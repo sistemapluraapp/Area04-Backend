@@ -13,3 +13,15 @@ export async function listarSinalizadas(c: Context<AppEnv>) {
   `
   return c.json({ avaliacoes })
 }
+
+export async function listarTodas(c: Context<AppEnv>) {
+  const sql = getDb(c.env.AREA04_DB_URL)
+  const avaliacoes = await sql`
+    select a.id, a.pagina_id, p.nome as pagina_nome, a.nota, a.comentario, a.resposta, a.created_at
+    from avaliacoes a
+    join paginas p on p.id = a.pagina_id
+    order by a.created_at desc
+    limit 200
+  `
+  return c.json({ avaliacoes })
+}
