@@ -38,6 +38,12 @@ const app = new Hono<AppEnv>()
 
 app.use('*', cors())
 
+app.onError((err, c) => {
+  console.error('Erro não tratado:', err)
+  const mensagem = err instanceof Error ? err.message : 'Erro inesperado ao falar com o servidor'
+  return c.json({ error: mensagem }, 500)
+})
+
 app.get('/health', (c) => c.json({ status: 'ok', area: c.env.AREA, service: 'backend' }))
 
 app.post('/auth/signup', signup)
