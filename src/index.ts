@@ -3,9 +3,19 @@ import { cors } from 'hono/cors'
 import { requireAuth } from './middleware/auth'
 import { signup, login, refresh } from './routes/auth'
 import { indicadores } from './routes/indicadores'
-import { estatisticas } from './routes/estatisticas'
-import { listarUsuarios, listarGovContas, listarPaginas, excluirConta } from './routes/contas'
-import { listarSinalizadas } from './routes/avaliacoes'
+import { estatisticas, estatisticasPorAno, estatisticasLoginsPorDia } from './routes/estatisticas'
+import {
+  listarUsuarios,
+  listarGovContas,
+  listarPaginas,
+  excluirConta,
+  suspenderUsuario,
+  suspenderGovConta,
+  suspenderPagina,
+  atualizarUsuario,
+  atualizarGovConta,
+} from './routes/contas'
+import { listarSinalizadas, listarTodas } from './routes/avaliacoes'
 import { listarPendentes, atualizarStatus } from './routes/certificados'
 import { criarConvite, listarConvites } from './routes/convitesGov'
 import {
@@ -42,13 +52,21 @@ app.use('*', async (c, next) => {
 
 app.get('/indicadores', indicadores)
 app.get('/estatisticas', estatisticas)
+app.get('/estatisticas/por-ano', estatisticasPorAno)
+app.get('/estatisticas/logins-por-dia', estatisticasLoginsPorDia)
 
 app.get('/contas/usuarios', listarUsuarios)
 app.get('/contas/gov', listarGovContas)
 app.get('/contas/paginas', listarPaginas)
+app.patch('/contas/usuarios/:id/suspender', suspenderUsuario)
+app.patch('/contas/gov/:id/suspender', suspenderGovConta)
+app.patch('/contas/paginas/:id/suspender', suspenderPagina)
+app.patch('/contas/usuarios/:id', atualizarUsuario)
+app.patch('/contas/gov/:id', atualizarGovConta)
 app.delete('/contas/:id', excluirConta)
 
 app.get('/avaliacoes/sinalizadas', listarSinalizadas)
+app.get('/avaliacoes/todas', listarTodas)
 
 app.get('/certificados/pendentes', listarPendentes)
 app.patch('/certificados/:id', atualizarStatus)
