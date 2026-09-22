@@ -3,10 +3,18 @@ import { cors } from 'hono/cors'
 import { requireAuth } from './middleware/auth'
 import { signup, login, refresh } from './routes/auth'
 import { indicadores } from './routes/indicadores'
+import { estatisticas } from './routes/estatisticas'
 import { listarUsuarios, listarGovContas, listarPaginas, excluirConta } from './routes/contas'
 import { listarSinalizadas } from './routes/avaliacoes'
 import { listarPendentes, atualizarStatus } from './routes/certificados'
 import { criarConvite, listarConvites } from './routes/convitesGov'
+import {
+  listarFiltros,
+  criarFiltro,
+  atualizarFiltro,
+  reordenarFiltros,
+  excluirFiltro,
+} from './routes/filtros'
 import {
   listarNotificacoes,
   contarNaoLidas,
@@ -33,6 +41,7 @@ app.use('*', async (c, next) => {
 })
 
 app.get('/indicadores', indicadores)
+app.get('/estatisticas', estatisticas)
 
 app.get('/contas/usuarios', listarUsuarios)
 app.get('/contas/gov', listarGovContas)
@@ -46,6 +55,12 @@ app.patch('/certificados/:id', atualizarStatus)
 
 app.post('/convites-gov', criarConvite)
 app.get('/convites-gov', listarConvites)
+
+app.get('/filtros', listarFiltros)
+app.post('/filtros', criarFiltro)
+app.patch('/filtros/reordenar', reordenarFiltros)
+app.patch('/filtros/:id', atualizarFiltro)
+app.delete('/filtros/:id', excluirFiltro)
 
 app.get('/notificacoes', listarNotificacoes)
 app.get('/notificacoes/contagem-nao-lidas', contarNaoLidas)
