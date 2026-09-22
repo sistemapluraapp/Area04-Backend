@@ -7,7 +7,9 @@ function gerarToken(): string {
 }
 
 export async function criarConvite(c: Context<AppEnv>) {
-  const body = await c.req.json<{ cidade?: string; dias_validade?: number }>().catch(() => null)
+  const body = await c.req
+    .json<{ cidade?: string; uf?: string; dias_validade?: number }>()
+    .catch(() => null)
 
   if (!body?.cidade) {
     return c.json({ error: 'Campo obrigatório: cidade' }, 400)
@@ -18,9 +20,9 @@ export async function criarConvite(c: Context<AppEnv>) {
   const sql = getDb(c.env.AREA04_DB_URL)
 
   const [convite] = await sql`
-    insert into chaves_acesso_gov (token, cidade, expira_em)
-    values (${token}, ${body.cidade}, now() + (${dias} || ' days')::interval)
-    returning token, cidade, criado_em, expira_em
+    insert into chaves_acesso_gov (token, cidade, uf, expira_em)
+    values (${token}, ${body.cidade}, ${body.uf ?? null}, now() + (${dias} || ' days')::interval)
+    returning token, cidade, uf, criado_em, expira_em
   `
 
   return c.json(convite, 201)
@@ -29,7 +31,7 @@ export async function criarConvite(c: Context<AppEnv>) {
 export async function listarConvites(c: Context<AppEnv>) {
   const sql = getDb(c.env.AREA04_DB_URL)
   const convites = await sql`
-    select token, cidade, criado_em, expira_em, usado, usado_em
+    select token, cidade, uf, criado_em, expira_em, usado, usado_em
     from chaves_acesso_gov
     order by criado_em desc
     limit 200
