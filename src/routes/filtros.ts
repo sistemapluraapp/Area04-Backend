@@ -53,7 +53,7 @@ export async function criarFiltro(c: Context<AppEnv>) {
 
 export async function atualizarFiltro(c: Context<AppEnv>) {
   const sql = getDb(c.env.AREA04_DB_URL)
-  const id = c.req.param('id')
+  const id = c.req.param('id') as string
   const body = await c.req.json<AtualizarFiltroBody>().catch(() => null)
 
   if (!body) return c.json({ error: 'Corpo da requisição inválido' }, 400)
@@ -92,7 +92,7 @@ export async function reordenarFiltros(c: Context<AppEnv>) {
 
 export async function excluirFiltro(c: Context<AppEnv>) {
   const sql = getDb(c.env.AREA04_DB_URL)
-  const id = c.req.param('id')
+  const id = c.req.param('id') as string
 
   const resultado = await sql`delete from filtros_acessibilidade where id = ${id}`
   if (resultado.count === 0) return c.json({ error: 'Filtro não encontrado' }, 404)
