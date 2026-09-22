@@ -1,0 +1,54 @@
+name: Hyperdrive setup
+
+on:
+  push:
+    branches: [main, claude/great-franklin-kisti3]
+    paths: ['.github/workflows/hyperdrive-setup.yml']
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - name: Create Hyperdrive configs (idempotent)
+        env:
+          DB_URL_01: ${{ secrets.AREA04_DB_URL }}
+          DB_URL_02: ${{ secrets.AREA04_ADMIN_DB_URL }}
+        run: |
+          set -uo pipefail
+          # Hyperdrive faz o próprio pool, então aponta para o pooler em
+          # session mode (5432), não transaction mode (6543). Tenta os dois
+          # clusters do pooler da Supabase na região: a criação valida a
+          # conexão, então só o host certo passa.
+          criar() {
+            nome="$1"; url="$2"
+            senha=$(node -e 'console.log(decodeURIComponent(new URL(process.argv[1]).password))' "$url")
+            echo "::add-mask::$senha"
+            if npx wrangler hyperdrive list 2>/dev/null | grep -q "$nome"; then
+              echo "$nome já existe"
+              return 0
+            fi
+            base="${url/:6543\//:5432/}"
+            for cluster in aws-0 aws-1; do
+              tentativa=$(echo "$base" | sed -E "s/aws-[01]-/${cluster}-/")
+              echo "Tentando $nome em $cluster (session mode)..."
+              if npx wrangler hyperdrive create "$nome" --connection-string="$tentativa"; then
+                echo "$nome criado usando $cluster"
+                return 0
+              fi
+            done
+            echo "Falha ao criar $nome"
+            return 1
+          }
+          status=0
+          criar area04-grupo01 "$DB_URL_01" || status=1
+          criar area04-grupo02 "$DB_URL_02" || status=1
+          npx wrangler hyperdrive list || true
+          exit $status
