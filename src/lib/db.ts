@@ -1,9 +1,24 @@
 import postgres from 'postgres'
 
-// Conexão direta ao Postgres do grupo.01, autenticada como o papel
-// restrito `area04_backend` (leitura ampla + escrita só em
-// certificados.status/avaliado_em e avaliacoes.notificada_em, e agora
-// também suspenso/suspensa/uf) — nunca a service_role key inteira.
+// AREA04_DB_URL e AREA04_ADMIN_DB_URL DEVEM apontar para o pooler Supavisor
+// em modo transaction (porta 6543, host aws-0-<região>.pooler.supabase.com),
+// nunca para a connection string direta (db.<ref>.supabase.co:5432).
+//
+// Causa raiz do "Too many subrequests by single Worker invocation" que
+// derrubava /indicadores, /estatisticas e /contas/paginas: a connection
+// string direta do Supabase só resolve em IPv6 (a menos que o projeto
+// tenha o add-on de IPv4 pago). O Cloudflare Worker não conseguia abrir
+// esse socket de forma confiável e o postgres.js reabria a conexão
+// repetidamente dentro da mesma invocação até estourar o limite de
+// subrequests do Worker — isso ficou mascarado por meses porque a versão
+// antiga reaproveitava a mesma conexão (singleton) durante toda a vida do
+// isolate, então só pagava esse custo raramente. Ao remover o singleton
+// (para resolver os 502 intermitentes, comentário abaixo), toda requisição
+// passou a pagar esse custo, e a falha virou constante.
+//
+// O pooler Supavisor em modo transaction é IPv4 e é justamente o método
+// recomendado pela Supabase para funções serverless/edge com conexões
+// curtas — resolve os dois problemas ao mesmo tempo.
 //
 // Importante: NÃO reaproveitamos a conexão entre requisições diferentes
 // (nada de singleton em variável de módulo). Já tentamos isso e causou
@@ -15,18 +30,18 @@ import postgres from 'postgres'
 // fica com estado inválido persistente — aceitável para um painel
 // administrativo de baixo tráfego.
 //
-// prepare: false — desliga prepared statements, necessário porque o
-// schema desta base muda com frequência (novas colunas via ALTER TABLE)
-// e planos de query em cache com o formato antigo da tabela causam erro
-// no Postgres ("cached plan must not change result type").
+// prepare: false — obrigatório em modo transaction do Supavisor (não
+// suporta prepared statements), e também evita erro de "cached plan must
+// not change result type" quando o schema muda via ALTER TABLE.
 export function getDb(dbUrl: string) {
   return postgres(dbUrl, { max: 1, idle_timeout: 20, ssl: 'require', prepare: false })
 }
 
-// Conexão direta ao Postgres do próprio grupo.02 (banco deste backend),
+// Conexão ao Postgres do próprio grupo.02 (banco deste backend),
 // autenticada como o papel restrito `area04_notifier` — usada só pelo Cron
 // Trigger, que não tem um JWT de admin para autenticar via Supabase Auth.
-// Mesmo raciocínio acima: sem singleton entre invocações.
+// Mesmo raciocínio acima: sem singleton entre invocações, e a URL também
+// deve ser a do pooler Supavisor (transaction mode).
 export function getAdminDb(dbUrl: string) {
   return postgres(dbUrl, { max: 1, idle_timeout: 20, ssl: 'require', prepare: false })
 }
