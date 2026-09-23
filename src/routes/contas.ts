@@ -10,7 +10,7 @@ export async function listarUsuarios(c: Context<AppEnv>) {
   const usuarios = await sql`
     select u.id, u.cpf, u.nome, u.cidade, u.uf, u.suspenso, u.created_at, au.email
     from usuarios u
-    left join auth.users au on au.id = u.id
+    left join area04_privado.usuarios_email au on au.id = u.id
     where (${nome ?? null}::text is null or u.nome ilike '%' || ${nome ?? null} || '%')
       and (${uf ?? null}::text is null or u.uf = ${uf ?? null})
     order by u.created_at desc
@@ -27,7 +27,7 @@ export async function listarGovContas(c: Context<AppEnv>) {
   const contas = await sql`
     select g.id, g.nome, g.orgao, g.cidade, g.uf, g.nivel_acesso, g.suspenso, g.created_at, au.email
     from gov_contas g
-    left join auth.users au on au.id = g.id
+    left join area04_privado.usuarios_email au on au.id = g.id
     where (${nome ?? null}::text is null or g.nome ilike '%' || ${nome ?? null} || '%')
       and (${uf ?? null}::text is null or g.uf = ${uf ?? null})
     order by g.created_at desc
@@ -126,10 +126,11 @@ export async function excluirConta(c: Context<AppEnv>) {
   const id = c.req.param('id') as string
   const sql = getDb(c.env)
 
-  // Apaga o auth.users; usuarios/gov_contas têm ON DELETE CASCADE a partir
+  // Apaga o auth.users (via função privada, já que o papel não acessa o schema
+  // auth); usuarios/gov_contas têm ON DELETE CASCADE a partir
   // dele, então o perfil some junto — evita conta órfã.
-  const resultado = await sql`delete from auth.users where id = ${id}`
-  if (resultado.count === 0) {
+  const [{ excluida }] = await sql`select area04_privado.excluir_conta(${id}::uuid) as excluida`
+  if (!excluida) {
     return c.json({ error: 'Conta não encontrada' }, 404)
   }
   return c.body(null, 204)
