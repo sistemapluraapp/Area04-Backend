@@ -1,0 +1,33 @@
+name: Deploy Worker (teste)
+
+# Ambiente de teste: publica esta branch no Worker area04-backend-teste,
+# sem tocar no Worker de produção.
+on:
+  push:
+    branches: [claude/clever-knuth-bx0368]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm run typecheck
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --env teste
+      - name: Set Worker secrets
+        run: |
+          echo "${{ secrets.AREA04_DB_URL }}" | npx wrangler secret put AREA04_DB_URL --env teste
+          echo "${{ secrets.AREA04_ADMIN_DB_URL }}" | npx wrangler secret put AREA04_ADMIN_DB_URL --env teste
+          echo "${{ secrets.ADMIN_SIGNUP_CODE }}" | npx wrangler secret put ADMIN_SIGNUP_CODE --env teste
+          echo "${{ secrets.RESEND_API_KEY }}" | npx wrangler secret put RESEND_API_KEY --env teste
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

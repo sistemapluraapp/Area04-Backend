@@ -25,3 +25,15 @@ AREA = "04"
 #                         executar a função broadcast_notificacao_admin
 #   ADMIN_SIGNUP_CODE   — código exigido para criar uma conta de admin
 #   RESEND_API_KEY      — chave da API do Resend para envio de e-mails
+
+# Ambiente de teste (branch claude/clever-knuth-bx0368): Worker separado,
+# area04-backend-teste, sem a tarefa agendada (o cron fica só na produção).
+# Publicado por .github/workflows/deploy-teste.yml
+[env.teste]
+name = "area04-backend-teste"
+triggers = { crons = [] }
+
+[env.teste.vars]
+SUPABASE_URL = "https://sbmvjrfswhbkioynrajd.supabase.co"
+SUPABASE_ANON_KEY = "sb_publishable_xg7SFgfKYw1z35VM3UPd_w_iA-LpXJ7"
+AREA = "04"
