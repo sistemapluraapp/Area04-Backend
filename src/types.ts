@@ -4,8 +4,8 @@ export type Bindings = {
   SUPABASE_URL: string
   SUPABASE_ANON_KEY: string
   AREA: string
-  AREA04_DB_URL: string
-  AREA04_ADMIN_DB_URL: string
+  HYPERDRIVE_GRUPO01: Hyperdrive
+  HYPERDRIVE_GRUPO02: Hyperdrive
   ADMIN_SIGNUP_CODE: string
   RESEND_API_KEY: string
 }

@@ -3,7 +3,7 @@ import { getDb } from '../lib/db'
 import type { AppEnv } from '../types'
 
 export async function listarUsuarios(c: Context<AppEnv>) {
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
   const nome = c.req.query('nome')
   const uf = c.req.query('uf')
 
@@ -20,7 +20,7 @@ export async function listarUsuarios(c: Context<AppEnv>) {
 }
 
 export async function listarGovContas(c: Context<AppEnv>) {
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
   const nome = c.req.query('nome')
   const uf = c.req.query('uf')
 
@@ -37,7 +37,7 @@ export async function listarGovContas(c: Context<AppEnv>) {
 }
 
 export async function listarPaginas(c: Context<AppEnv>) {
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
   const nome = c.req.query('nome')
   const uf = c.req.query('uf')
 
@@ -54,7 +54,7 @@ export async function listarPaginas(c: Context<AppEnv>) {
 
 export async function suspenderUsuario(c: Context<AppEnv>) {
   const id = c.req.param('id') as string
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
 
   const [usuario] = await sql`
     update usuarios set suspenso = not suspenso where id = ${id}
@@ -66,7 +66,7 @@ export async function suspenderUsuario(c: Context<AppEnv>) {
 
 export async function suspenderGovConta(c: Context<AppEnv>) {
   const id = c.req.param('id') as string
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
 
   const [conta] = await sql`
     update gov_contas set suspenso = not suspenso where id = ${id}
@@ -78,7 +78,7 @@ export async function suspenderGovConta(c: Context<AppEnv>) {
 
 export async function suspenderPagina(c: Context<AppEnv>) {
   const id = c.req.param('id') as string
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
 
   const [pagina] = await sql`
     update paginas set suspensa = not suspensa where id = ${id}
@@ -96,7 +96,7 @@ export async function atualizarUsuario(c: Context<AppEnv>) {
     return c.json({ error: 'Campo obrigatório: uf' }, 400)
   }
 
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
   const [usuario] = await sql`
     update usuarios set uf = ${body.uf} where id = ${id}
     returning id, uf
@@ -113,7 +113,7 @@ export async function atualizarGovConta(c: Context<AppEnv>) {
     return c.json({ error: 'Campo obrigatório: uf' }, 400)
   }
 
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
   const [conta] = await sql`
     update gov_contas set uf = ${body.uf} where id = ${id}
     returning id, uf
@@ -124,7 +124,7 @@ export async function atualizarGovConta(c: Context<AppEnv>) {
 
 export async function excluirConta(c: Context<AppEnv>) {
   const id = c.req.param('id') as string
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
 
   // Apaga o auth.users; usuarios/gov_contas têm ON DELETE CASCADE a partir
   // dele, então o perfil some junto — evita conta órfã.

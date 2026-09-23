@@ -4,7 +4,7 @@ import { enviarEmail } from '../lib/email'
 import type { AppEnv } from '../types'
 
 export async function listarPendentes(c: Context<AppEnv>) {
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
   const certificados = await sql`
     select c.id, c.pagina_id, p.nome as pagina_nome, c.status, c.solicitado_em
     from certificados c
@@ -25,7 +25,7 @@ export async function atualizarStatus(c: Context<AppEnv>) {
   const status = body.status
   const motivo = body.motivo ?? null
 
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
   const [certificado] = await sql`
     update certificados set status = ${status}, avaliado_em = now() where id = ${id}
     returning id, pagina_id, status, solicitado_em, avaliado_em

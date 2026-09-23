@@ -6,6 +6,17 @@ compatibility_flags = ["nodejs_compat"]
 [triggers]
 crons = ["*/5 * * * *"]
 
+# Conexões Postgres via Cloudflare Hyperdrive (criadas por
+# .github/workflows/hyperdrive-setup.yml). As credenciais ficam guardadas no
+# próprio Hyperdrive, não em secrets do Worker.
+[[hyperdrive]]
+binding = "HYPERDRIVE_GRUPO01"
+id = "b2befdfef48047f1aa73bf4ee39b1459"
+
+[[hyperdrive]]
+binding = "HYPERDRIVE_GRUPO02"
+id = "a377c38cec284d50859ccdfa93046dba"
+
 [vars]
 SUPABASE_URL = "https://sbmvjrfswhbkioynrajd.supabase.co"
 # Anon/publishable key do grupo.02 — pública por design, protegida pelo RLS.
@@ -15,13 +26,5 @@ AREA = "04"
 # Secrets de verdade (nunca commitados): configurados automaticamente pelo
 # workflow de deploy (.github/workflows/deploy.yml) a partir de secrets do
 # repositório no GitHub — não precisa rodar `wrangler secret put` manualmente.
-#   AREA04_DB_URL       — conexão Postgres com o papel restrito
-#                         `area04_backend` no grupo.01 (leitura ampla +
-#                         escrita em certificados.status/avaliado_em e
-#                         avaliacoes.notificada_em)
-#   AREA04_ADMIN_DB_URL — conexão Postgres com o papel restrito
-#                         `area04_notifier` no próprio grupo.02, usada só
-#                         pelo Cron Trigger (sem JWT de admin) para
-#                         executar a função broadcast_notificacao_admin
 #   ADMIN_SIGNUP_CODE   — código exigido para criar uma conta de admin
 #   RESEND_API_KEY      — chave da API do Resend para envio de e-mails

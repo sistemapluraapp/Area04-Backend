@@ -12,7 +12,7 @@ interface LinhaEstatistica {
 }
 
 export async function estatisticas(c: Context<AppEnv>) {
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
 
   const linhas = await sql<LinhaEstatistica[]>`
     with meses as (
@@ -82,7 +82,7 @@ export async function estatisticasPorAno(c: Context<AppEnv>) {
   }
   const ano = Number(anoParam)
 
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
 
   const linhas = await sql<LinhaEstatisticaAno[]>`
     with meses as (
@@ -144,7 +144,7 @@ export async function estatisticasLoginsPorDia(c: Context<AppEnv>) {
   }
   const ano = Number(anoParam)
 
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
 
   const linhas = await sql<LinhaLoginsPorDia[]>`
     with dias as (

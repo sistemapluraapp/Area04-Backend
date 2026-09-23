@@ -3,7 +3,7 @@ import { getDb } from '../lib/db'
 import type { AppEnv } from '../types'
 
 export async function listarSinalizadas(c: Context<AppEnv>) {
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
   const avaliacoes = await sql`
     select a.id, a.pagina_id, p.nome as pagina_nome, a.nota, a.comentario, a.resposta, a.sinalizada, a.created_at
     from avaliacoes a
@@ -15,7 +15,7 @@ export async function listarSinalizadas(c: Context<AppEnv>) {
 }
 
 export async function listarTodas(c: Context<AppEnv>) {
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
   const avaliacoes = await sql`
     select a.id, a.pagina_id, p.nome as pagina_nome, a.nota, a.comentario, a.resposta, a.sinalizada, a.created_at
     from avaliacoes a

@@ -3,7 +3,7 @@ import { getDb } from '../lib/db'
 import type { AppEnv } from '../types'
 
 export async function indicadores(c: Context<AppEnv>) {
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
 
   const [linha] = await sql`
     select
