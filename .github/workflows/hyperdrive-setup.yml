@@ -17,6 +17,23 @@ jobs:
         with:
           node-version: 20
       - run: npm install
+      - name: Diagnose grupo01 credentials (no secret printed)
+        env:
+          DB_URL_01: ${{ secrets.AREA04_DB_URL }}
+        run: |
+          url=$(printf %s "$DB_URL_01" | tr -d '[:space:]')
+          node -e '
+            const u = new URL(process.argv[1]);
+            const pw = decodeURIComponent(u.password);
+            const h = require("crypto").createHash("sha256").update(pw).digest("hex");
+            console.log("usuario:", decodeURIComponent(u.username));
+            console.log("host:", u.hostname, "porta:", u.port);
+            console.log("tamanho da senha:", pw.length);
+            console.log("senha confere com a esperada:", h === "fa74973a17c515ebf968f6735071738988f082ce28547372a8508c41bf6d8dea" ? "SIM" : "NAO");
+          ' "$url"
+          sudo apt-get install -y -qq postgresql-client >/dev/null 2>&1 || true
+          session="${url/:6543\//:5432/}"
+          psql "$session?sslmode=require&connect_timeout=10" -c "select current_user" 2>&1 | sed -E 's#://[^@]*@#://***@#' || true
       - name: Create Hyperdrive configs (idempotent)
         env:
           DB_URL_01: ${{ secrets.AREA04_DB_URL }}
