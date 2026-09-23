@@ -2,12 +2,18 @@ import type { Context } from 'hono'
 import { getDb } from '../lib/db'
 import type { AppEnv } from '../types'
 
+type Escopo = 'b2b' | 'b2g' | 'ambos'
+const ESCOPOS: Escopo[] = ['b2b', 'b2g', 'ambos']
+
 interface NovoFiltroBody {
   tipo?: 'recurso_local' | 'necessidade_pessoal'
   categoria?: string
   codigo?: string
   rotulo?: string
   ordem?: number
+  icone?: string | null
+  descricao?: string | null
+  escopo?: Escopo
 }
 
 interface AtualizarFiltroBody {
@@ -15,12 +21,17 @@ interface AtualizarFiltroBody {
   rotulo?: string
   ordem?: number
   ativo?: boolean
+  icone?: string | null
+  descricao?: string | null
+  escopo?: Escopo
 }
+
+const COLUNAS = 'id, tipo, categoria, codigo, rotulo, icone, descricao, escopo, ordem, ativo, created_at, updated_at'
 
 export async function listarFiltros(c: Context<AppEnv>) {
   const sql = getDb(c.env.AREA04_DB_URL)
   const filtros = await sql`
-    select id, tipo, categoria, codigo, rotulo, ordem, ativo, created_at, updated_at
+    select ${sql.unsafe(COLUNAS)}
     from filtros_acessibilidade
     order by tipo, categoria, ordem
   `
@@ -37,12 +48,16 @@ export async function criarFiltro(c: Context<AppEnv>) {
   if (body.tipo !== 'recurso_local' && body.tipo !== 'necessidade_pessoal') {
     return c.json({ error: "Campo tipo deve ser 'recurso_local' ou 'necessidade_pessoal'" }, 400)
   }
+  if (body.escopo && !ESCOPOS.includes(body.escopo)) {
+    return c.json({ error: `Campo escopo deve ser: ${ESCOPOS.join(', ')}` }, 400)
+  }
 
   try {
     const [filtro] = await sql`
-      insert into filtros_acessibilidade (tipo, categoria, codigo, rotulo, ordem)
-      values (${body.tipo}, ${body.categoria}, ${body.codigo}, ${body.rotulo}, ${body.ordem ?? 0})
-      returning id, tipo, categoria, codigo, rotulo, ordem, ativo, created_at, updated_at
+      insert into filtros_acessibilidade (tipo, categoria, codigo, rotulo, ordem, icone, descricao, escopo)
+      values (${body.tipo}, ${body.categoria}, ${body.codigo}, ${body.rotulo}, ${body.ordem ?? 0},
+              ${body.icone ?? null}, ${body.descricao ?? null}, ${body.escopo ?? 'ambos'})
+      returning ${sql.unsafe(COLUNAS)}
     `
     return c.json(filtro, 201)
   } catch (e) {
@@ -57,6 +72,9 @@ export async function atualizarFiltro(c: Context<AppEnv>) {
   const body = await c.req.json<AtualizarFiltroBody>().catch(() => null)
 
   if (!body) return c.json({ error: 'Corpo da requisição inválido' }, 400)
+  if (body.escopo && !ESCOPOS.includes(body.escopo)) {
+    return c.json({ error: `Campo escopo deve ser: ${ESCOPOS.join(', ')}` }, 400)
+  }
 
   const [filtro] = await sql`
     update filtros_acessibilidade set
@@ -64,9 +82,12 @@ export async function atualizarFiltro(c: Context<AppEnv>) {
       rotulo = coalesce(${body.rotulo ?? null}, rotulo),
       ordem = coalesce(${body.ordem ?? null}, ordem),
       ativo = coalesce(${body.ativo ?? null}, ativo),
+      icone = ${body.icone === undefined ? sql`icone` : body.icone},
+      descricao = ${body.descricao === undefined ? sql`descricao` : body.descricao},
+      escopo = coalesce(${body.escopo ?? null}, escopo),
       updated_at = now()
     where id = ${id}
-    returning id, tipo, categoria, codigo, rotulo, ordem, ativo, created_at, updated_at
+    returning ${sql.unsafe(COLUNAS)}
   `
 
   if (!filtro) return c.json({ error: 'Filtro não encontrado' }, 404)

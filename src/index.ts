@@ -26,6 +26,16 @@ import {
   excluirFiltro,
 } from './routes/filtros'
 import {
+  listarCatalogo,
+  criarItemCatalogo,
+  atualizarItemCatalogo,
+  reordenarCatalogo,
+  excluirItemCatalogo,
+} from './routes/catalogo'
+import { listarGrupos, criarGrupo, atualizarGrupo, excluirGrupo } from './routes/grupos'
+import { listarDenuncias, atualizarDenuncia } from './routes/denuncias'
+import { listarComentarios, moderarComentario } from './routes/comentarios'
+import {
   listarNotificacoes,
   contarNaoLidas,
   marcarLida,
@@ -85,6 +95,23 @@ app.post('/filtros', criarFiltro)
 app.patch('/filtros/reordenar', reordenarFiltros)
 app.patch('/filtros/:id', atualizarFiltro)
 app.delete('/filtros/:id', excluirFiltro)
+
+app.get('/grupos-acessibilidade', listarGrupos)
+app.post('/grupos-acessibilidade', criarGrupo)
+app.patch('/grupos-acessibilidade/:codigo', atualizarGrupo)
+app.delete('/grupos-acessibilidade/:codigo', excluirGrupo)
+
+app.get('/catalogo', listarCatalogo)
+app.post('/catalogo', criarItemCatalogo)
+app.patch('/catalogo/reordenar', reordenarCatalogo)
+app.patch('/catalogo/:id', atualizarItemCatalogo)
+app.delete('/catalogo/:id', excluirItemCatalogo)
+
+app.get('/denuncias', listarDenuncias)
+app.patch('/denuncias/:id', atualizarDenuncia)
+
+app.get('/comentarios', listarComentarios)
+app.patch('/comentarios/:id', moderarComentario)
 
 app.get('/notificacoes', listarNotificacoes)
 app.get('/notificacoes/contagem-nao-lidas', contarNaoLidas)
