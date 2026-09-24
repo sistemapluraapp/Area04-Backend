@@ -17,6 +17,27 @@ jobs:
         with:
           node-version: 20
       - run: npm install
+      - name: Check both DB secrets (no secret printed)
+        env:
+          DB_URL_01: ${{ secrets.AREA04_DB_URL }}
+          DB_URL_02: ${{ secrets.AREA04_ADMIN_DB_URL }}
+        run: |
+          checar() {
+            nome="$1"; url=$(printf %s "$2" | tr -d '[:space:]'); usuario_esperado="$3"; hash_esperado="$4"
+            echo "== $nome =="
+            node -e '
+              const [url, userExp, hashExp] = process.argv.slice(1);
+              const u = new URL(url);
+              const pw = decodeURIComponent(u.password);
+              const h = require("crypto").createHash("sha256").update(pw).digest("hex");
+              const user = decodeURIComponent(u.username);
+              console.log("usuario:", user, user === userExp ? "(OK)" : "(ERRADO, esperado " + userExp + ")");
+              console.log("host:", u.hostname, "porta:", u.port);
+              console.log("senha confere com a esperada:", h === hashExp ? "SIM" : "NAO");
+            ' "$url" "$usuario_esperado" "$hash_esperado"
+          }
+          checar AREA04_DB_URL "$DB_URL_01" area04_backend.uoembacxxnkuwldmdgcu fa74973a17c515ebf968f6735071738988f082ce28547372a8508c41bf6d8dea
+          checar AREA04_ADMIN_DB_URL "$DB_URL_02" area04_notifier.sbmvjrfswhbkioynrajd 08474c46211ad5e6f27d9c5d261345fe73d4c98b09f982fab58347a814d03e45
       - name: Create Hyperdrive configs (idempotent)
         env:
           DB_URL_01: ${{ secrets.AREA04_DB_URL }}

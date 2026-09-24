@@ -3,8 +3,8 @@ import { enviarEmail } from './email'
 import type { Bindings } from '../types'
 
 export async function processarAvaliacoesSinalizadas(env: Bindings) {
-  const sql = getDb(env.AREA04_DB_URL)
-  const sqlAdmin = getAdminDb(env.AREA04_ADMIN_DB_URL)
+  const sql = getDb(env)
+  const sqlAdmin = getAdminDb(env)
 
   const avaliacoes = await sql`
     select id, pagina_id from avaliacoes

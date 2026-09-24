@@ -29,7 +29,7 @@ interface AtualizarFiltroBody {
 const COLUNAS = 'id, tipo, categoria, codigo, rotulo, icone, descricao, escopo, ordem, ativo, created_at, updated_at'
 
 export async function listarFiltros(c: Context<AppEnv>) {
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
   const filtros = await sql`
     select ${sql.unsafe(COLUNAS)}
     from filtros_acessibilidade
@@ -39,7 +39,7 @@ export async function listarFiltros(c: Context<AppEnv>) {
 }
 
 export async function criarFiltro(c: Context<AppEnv>) {
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
   const body = await c.req.json<NovoFiltroBody>().catch(() => null)
 
   if (!body?.tipo || !body.categoria || !body.codigo || !body.rotulo) {
@@ -67,7 +67,7 @@ export async function criarFiltro(c: Context<AppEnv>) {
 }
 
 export async function atualizarFiltro(c: Context<AppEnv>) {
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
   const id = c.req.param('id') as string
   const body = await c.req.json<AtualizarFiltroBody>().catch(() => null)
 
@@ -95,7 +95,7 @@ export async function atualizarFiltro(c: Context<AppEnv>) {
 }
 
 export async function reordenarFiltros(c: Context<AppEnv>) {
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
   const body = await c.req.json<{ itens?: { id: string; ordem: number }[] }>().catch(() => null)
 
   if (!body?.itens || !Array.isArray(body.itens) || body.itens.length === 0) {
@@ -112,7 +112,7 @@ export async function reordenarFiltros(c: Context<AppEnv>) {
 }
 
 export async function excluirFiltro(c: Context<AppEnv>) {
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
   const id = c.req.param('id') as string
 
   const resultado = await sql`delete from filtros_acessibilidade where id = ${id}`

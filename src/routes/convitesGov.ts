@@ -17,7 +17,7 @@ export async function criarConvite(c: Context<AppEnv>) {
 
   const dias = body.dias_validade && body.dias_validade > 0 ? Math.floor(body.dias_validade) : 7
   const token = gerarToken()
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
 
   const [convite] = await sql`
     insert into chaves_acesso_gov (token, cidade, uf, expira_em)
@@ -29,7 +29,7 @@ export async function criarConvite(c: Context<AppEnv>) {
 }
 
 export async function listarConvites(c: Context<AppEnv>) {
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
   const convites = await sql`
     select token, cidade, uf, criado_em, expira_em, usado, usado_em
     from chaves_acesso_gov
