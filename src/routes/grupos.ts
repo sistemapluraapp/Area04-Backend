@@ -19,7 +19,7 @@ interface GrupoBody {
 const COLUNAS = 'codigo, rotulo, descricao, icone, ordem, ativo, created_at, updated_at'
 
 export async function listarGrupos(c: Context<AppEnv>) {
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
   const grupos = await sql`
     select ${sql.unsafe(COLUNAS)},
       (select count(*)::int from filtros_acessibilidade f where f.tipo = 'recurso_local' and f.categoria = g.codigo) as total_recursos
@@ -30,7 +30,7 @@ export async function listarGrupos(c: Context<AppEnv>) {
 }
 
 export async function criarGrupo(c: Context<AppEnv>) {
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
   const body = await c.req.json<GrupoBody>().catch(() => null)
 
   if (!body?.codigo || !body.rotulo) return c.json({ error: 'Campos obrigatórios: codigo, rotulo' }, 400)
@@ -50,7 +50,7 @@ export async function criarGrupo(c: Context<AppEnv>) {
 }
 
 export async function atualizarGrupo(c: Context<AppEnv>) {
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
   const codigo = c.req.param('codigo') as string
   const body = await c.req.json<GrupoBody>().catch(() => null)
   if (!body) return c.json({ error: 'Corpo da requisição inválido' }, 400)
@@ -71,7 +71,7 @@ export async function atualizarGrupo(c: Context<AppEnv>) {
 }
 
 export async function excluirGrupo(c: Context<AppEnv>) {
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
   const codigo = c.req.param('codigo') as string
 
   const [{ total }] = await sql`

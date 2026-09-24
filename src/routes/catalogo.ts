@@ -24,7 +24,7 @@ interface ItemBody {
 const COLUNAS = 'id, tipo, codigo, rotulo, icone, escopo, ordem, ativo, created_at, updated_at'
 
 export async function listarCatalogo(c: Context<AppEnv>) {
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
   const tipo = c.req.query('tipo')
   if (tipo && !TIPOS.includes(tipo as Tipo)) return c.json({ error: `tipo deve ser: ${TIPOS.join(', ')}` }, 400)
 
@@ -35,7 +35,7 @@ export async function listarCatalogo(c: Context<AppEnv>) {
 }
 
 export async function criarItemCatalogo(c: Context<AppEnv>) {
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
   const body = await c.req.json<ItemBody>().catch(() => null)
 
   if (!body?.tipo || !body.codigo || !body.rotulo) {
@@ -59,7 +59,7 @@ export async function criarItemCatalogo(c: Context<AppEnv>) {
 }
 
 export async function atualizarItemCatalogo(c: Context<AppEnv>) {
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
   const id = c.req.param('id') as string
   const body = await c.req.json<ItemBody>().catch(() => null)
 
@@ -82,7 +82,7 @@ export async function atualizarItemCatalogo(c: Context<AppEnv>) {
 }
 
 export async function reordenarCatalogo(c: Context<AppEnv>) {
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
   const body = await c.req.json<{ itens?: { id: string; ordem: number }[] }>().catch(() => null)
 
   if (!body?.itens || !Array.isArray(body.itens) || body.itens.length === 0) {
@@ -98,7 +98,7 @@ export async function reordenarCatalogo(c: Context<AppEnv>) {
 }
 
 export async function excluirItemCatalogo(c: Context<AppEnv>) {
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
   const id = c.req.param('id') as string
 
   const resultado = await sql`delete from catalogo_itens where id = ${id}`

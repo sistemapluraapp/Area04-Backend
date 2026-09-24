@@ -36,6 +36,15 @@ AREA = "04"
 name = "area04-backend-teste"
 triggers = { crons = [] }
 
+# Bindings não são herdados pelo ambiente: repete os mesmos Hyperdrive.
+[[env.teste.hyperdrive]]
+binding = "HYPERDRIVE_GRUPO01"
+id = "b2befdfef48047f1aa73bf4ee39b1459"
+
+[[env.teste.hyperdrive]]
+binding = "HYPERDRIVE_GRUPO02"
+id = "a377c38cec284d50859ccdfa93046dba"
+
 [env.teste.vars]
 SUPABASE_URL = "https://sbmvjrfswhbkioynrajd.supabase.co"
 SUPABASE_ANON_KEY = "sb_publishable_xg7SFgfKYw1z35VM3UPd_w_iA-LpXJ7"

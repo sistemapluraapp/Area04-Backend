@@ -4,8 +4,9 @@ import type { AppEnv, Bindings } from '../types'
 
 // "Consumo de recursos em infraestrutura": uso atual x teto do plano
 // gratuito. Supabase soma os dois projetos (a cota do plano é da
-// organização): o grupo01 é lido por AREA04_DB_URL e o grupo.02 por
-// AREA04_ADMIN_DB_URL, ambos pela função public.consumo_infraestrutura().
+// organização): o grupo01 é lido pelo Hyperdrive HYPERDRIVE_GRUPO01 e o
+// grupo.02 pelo HYPERDRIVE_GRUPO02, ambos pela função
+// public.consumo_infraestrutura().
 // As requisições vêm da API GraphQL de análise do Cloudflare, que exige
 // CLOUDFLARE_ANALYTICS_TOKEN (permissão "Account Analytics: Read").
 
@@ -32,9 +33,8 @@ function fasePorPercentual(p: number): Fase {
 const ORDEM_FASES: Fase[] = ['tranquilo', 'prepare-se', 'planeje', 'critico']
 const maisGrave = (a: Fase, b: Fase) => (ORDEM_FASES.indexOf(a) >= ORDEM_FASES.indexOf(b) ? a : b)
 
-async function lerProjeto(url: string | undefined, admin: boolean): Promise<Projeto | { erro: string }> {
-  if (!url) return { erro: 'Conexão não configurada' }
-  const sql = admin ? getAdminDb(url) : getDb(url)
+async function lerProjeto(env: Bindings, admin: boolean): Promise<Projeto | { erro: string }> {
+  const sql = admin ? getAdminDb(env) : getDb(env)
   try {
     const [linha] = await sql`select public.consumo_infraestrutura() as r`
     const r = linha.r as Projeto
@@ -92,14 +92,14 @@ async function lerRequisicoesCloudflare(env: Bindings, agora: Date) {
 }
 
 export async function consumoInfraestrutura(c: Context<AppEnv>) {
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
   const agora = new Date()
   const hoje = agora.toISOString().slice(0, 10)
 
   const [limites, grupo01, grupo02, cloudflare] = await Promise.all([
     sql<Limite[]>`select recurso, rotulo, limite::float8 as limite, unidade, periodo, ordem from infraestrutura_limites order by ordem`,
-    lerProjeto(c.env.AREA04_DB_URL, false),
-    lerProjeto(c.env.AREA04_ADMIN_DB_URL, true),
+    lerProjeto(c.env, false),
+    lerProjeto(c.env, true),
     lerRequisicoesCloudflare(c.env, agora),
   ])
 
@@ -200,7 +200,7 @@ export async function atualizarLimite(c: Context<AppEnv>) {
   const limite = Number(body?.limite)
   if (!Number.isFinite(limite) || limite <= 0) return c.json({ error: 'limite deve ser um número maior que zero' }, 400)
 
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
   const [linha] = await sql`
     update infraestrutura_limites set limite = ${limite}, updated_at = now()
     where recurso = ${recurso}

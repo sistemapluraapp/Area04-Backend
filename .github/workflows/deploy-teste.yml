@@ -24,8 +24,6 @@ jobs:
           command: deploy --env teste
       - name: Set Worker secrets
         run: |
-          echo "${{ secrets.AREA04_DB_URL }}" | npx wrangler secret put AREA04_DB_URL --env teste
-          echo "${{ secrets.AREA04_ADMIN_DB_URL }}" | npx wrangler secret put AREA04_ADMIN_DB_URL --env teste
           echo "${{ secrets.ADMIN_SIGNUP_CODE }}" | npx wrangler secret put ADMIN_SIGNUP_CODE --env teste
           echo "${{ secrets.RESEND_API_KEY }}" | npx wrangler secret put RESEND_API_KEY --env teste
           # Consumo de infraestrutura: só grava se o secret existir no GitHub.

@@ -8,7 +8,7 @@ const STATUS = ['pendente', 'resolvida', 'descartada'] as const
 type Status = (typeof STATUS)[number]
 
 export async function listarDenuncias(c: Context<AppEnv>) {
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
   const status = c.req.query('status')
   if (status && !STATUS.includes(status as Status)) return c.json({ error: `status deve ser: ${STATUS.join(', ')}` }, 400)
 
@@ -26,7 +26,7 @@ export async function listarDenuncias(c: Context<AppEnv>) {
 }
 
 export async function atualizarDenuncia(c: Context<AppEnv>) {
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
   const id = c.req.param('id') as string
   const body = await c.req.json<{ status?: Status; observacao_admin?: string }>().catch(() => null)
 

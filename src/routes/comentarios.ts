@@ -9,7 +9,7 @@ const STATUS = ['pendente', 'aprovado', 'reprovado'] as const
 type Status = (typeof STATUS)[number]
 
 export async function listarComentarios(c: Context<AppEnv>) {
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
   const status = c.req.query('status')
   const pessoa = c.req.query('pessoa')?.trim()
   const empreendimento = c.req.query('empreendimento')?.trim()
@@ -33,7 +33,7 @@ export async function listarComentarios(c: Context<AppEnv>) {
 }
 
 export async function moderarComentario(c: Context<AppEnv>) {
-  const sql = getDb(c.env.AREA04_DB_URL)
+  const sql = getDb(c.env)
   const id = c.req.param('id') as string
   const body = await c.req.json<{ status?: Status; motivo?: string }>().catch(() => null)
 
