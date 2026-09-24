@@ -35,6 +35,7 @@ import {
 import { listarGrupos, criarGrupo, atualizarGrupo, excluirGrupo } from './routes/grupos'
 import { listarDenuncias, atualizarDenuncia } from './routes/denuncias'
 import { listarComentarios, moderarComentario } from './routes/comentarios'
+import { consumoInfraestrutura, atualizarLimite } from './routes/infraestrutura'
 import {
   listarNotificacoes,
   contarNaoLidas,
@@ -112,6 +113,9 @@ app.patch('/denuncias/:id', atualizarDenuncia)
 
 app.get('/comentarios', listarComentarios)
 app.patch('/comentarios/:id', moderarComentario)
+
+app.get('/infraestrutura', consumoInfraestrutura)
+app.patch('/infraestrutura/limites/:recurso', atualizarLimite)
 
 app.get('/notificacoes', listarNotificacoes)
 app.get('/notificacoes/contagem-nao-lidas', contarNaoLidas)
