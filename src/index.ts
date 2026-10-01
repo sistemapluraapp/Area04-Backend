@@ -46,6 +46,7 @@ import { processarAvaliacoesSinalizadas, purgarPaginasExcluidas } from './lib/cr
 import { hookEmailGrupo01 } from './routes/emailHook'
 import { aceitarConviteAdmin, atualizarAdmin, cancelarConvite, convidarAdmin, exportarLogsCsv, listarAdmins, listarLogs, meuAcesso, reenviarConvite, verConviteAdmin } from './routes/admins'
 import { atualizarModelo, enviarTesteModelo, listarModelos, previaModelo } from './routes/comunicacao'
+import { atualizarTermo, listarTermos } from './routes/termos'
 import type { AppEnv, Bindings } from './types'
 
 const app = new Hono<AppEnv>()
@@ -123,6 +124,8 @@ app.get('/comunicacao', listarModelos)
 app.put('/comunicacao/:chave', atualizarModelo)
 app.post('/comunicacao/:chave/previa', previaModelo)
 app.post('/comunicacao/:chave/teste', enviarTesteModelo)
+app.get('/termos', listarTermos)
+app.put('/termos/:chave', atualizarTermo)
 
 app.get('/catalogo', listarCatalogo)
 app.post('/catalogo', criarItemCatalogo)

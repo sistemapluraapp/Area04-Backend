@@ -6,7 +6,7 @@ export const PERMISSOES = [
   { codigo: 'certificados', rotulo: 'Certificados' },
   { codigo: 'contas', rotulo: 'Contas e convites Gov' },
   { codigo: 'configuracoes', rotulo: 'Configurações (acessibilidade, catálogo, necessidades)' },
-  { codigo: 'comunicacao', rotulo: 'E-mails e boas-vindas' },
+  { codigo: 'comunicacao', rotulo: 'E-mails, boas-vindas e termos' },
   { codigo: 'administradores', rotulo: 'Administradores e logs' },
 ] as const
 
@@ -29,6 +29,7 @@ const ROTAS: { prefixo: string; permissao: Permissao }[] = [
   { prefixo: '/filtros', permissao: 'configuracoes' },
   { prefixo: '/grupos-acessibilidade', permissao: 'configuracoes' },
   { prefixo: '/comunicacao', permissao: 'comunicacao' },
+  { prefixo: '/termos', permissao: 'comunicacao' },
   { prefixo: '/admins', permissao: 'administradores' },
   { prefixo: '/logs', permissao: 'administradores' },
 ]
@@ -55,6 +56,7 @@ const DESCRICOES: { metodo: string; padrao: RegExp; descrever: (m: RegExpMatchAr
   { metodo: 'DELETE', padrao: /^\/(catalogo|filtros|grupos-acessibilidade)\/([^/]+)$/, descrever: (m) => `Excluiu ${m[2]} de ${rotuloConfig(m[1])}` },
   { metodo: 'PUT', padrao: /^\/comunicacao\/([^/]+)$/, descrever: (m) => `Editou o modelo de comunicação "${m[1]}"` },
   { metodo: 'POST', padrao: /^\/comunicacao\/([^/]+)\/teste$/, descrever: (m) => `Enviou um e-mail de teste do modelo "${m[1]}"` },
+  { metodo: 'PUT', padrao: /^\/termos\/([^/]+)$/, descrever: (m) => `Editou o termo "${m[1]}"` },
   { metodo: 'PATCH', padrao: /^\/infraestrutura\/limites\/([^/]+)$/, descrever: (m, b) => `Alterou o limite de ${m[1]} para ${t(b?.limite) ?? '—'}` },
   { metodo: 'POST', padrao: /^\/admins\/convites$/, descrever: (_m, b) => `Convidou ${t(b?.nome) ?? ''} <${t(b?.email) ?? '—'}> como administrador (${listaPermissoes(b?.permissoes)})` },
   { metodo: 'POST', padrao: /^\/admins\/convites\/([^/]+)\/reenviar$/, descrever: (m) => `Reenviou o convite de administrador ${m[1]}` },
