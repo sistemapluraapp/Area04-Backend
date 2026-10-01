@@ -44,6 +44,7 @@ import {
 } from './routes/notificacoes'
 import { processarAvaliacoesSinalizadas, purgarPaginasExcluidas } from './lib/cron'
 import { hookEmailGrupo01 } from './routes/emailHook'
+import { aceitarConviteAdmin, atualizarAdmin, cancelarConvite, convidarAdmin, exportarLogsCsv, listarAdmins, listarLogs, meuAcesso, reenviarConvite, verConviteAdmin } from './routes/admins'
 import { atualizarModelo, enviarTesteModelo, listarModelos, previaModelo } from './routes/comunicacao'
 import type { AppEnv, Bindings } from './types'
 
@@ -64,12 +65,24 @@ app.post('/auth/login', login)
 app.post('/auth/refresh', refresh)
 // Chamado pelo Supabase Auth (grupo.01), autenticado pela assinatura do webhook
 app.post('/hooks/email-grupo01', hookEmailGrupo01)
+// Convite de administrador: o convidado ainda não tem login
+app.get('/convites-admin/:token', verConviteAdmin)
+app.post('/convites-admin/:token/aceitar', aceitarConviteAdmin)
 
 app.use('*', async (c, next) => {
   const publicas = ['/health', '/auth/login', '/auth/signup', '/auth/refresh', '/hooks/email-grupo01']
-  if (publicas.includes(c.req.path)) return next()
+  if (publicas.includes(c.req.path) || c.req.path.startsWith('/convites-admin/')) return next()
   return requireAuth(c, next)
 })
+
+app.get('/me', meuAcesso)
+app.get('/admins', listarAdmins)
+app.patch('/admins/:id', atualizarAdmin)
+app.post('/admins/convites', convidarAdmin)
+app.post('/admins/convites/:id/reenviar', reenviarConvite)
+app.delete('/admins/convites/:id', cancelarConvite)
+app.get('/logs', listarLogs)
+app.get('/logs/csv', exportarLogsCsv)
 
 app.get('/indicadores', indicadores)
 app.get('/estatisticas', estatisticas)

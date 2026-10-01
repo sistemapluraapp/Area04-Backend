@@ -1,50 +1,12 @@
 import type { Context } from 'hono'
-import { getAnonClient } from '../lib/supabase'
+import { getAnonClient, getUserClient } from '../lib/supabase'
+import { registrarLog } from '../middleware/auth'
 import type { AppEnv } from '../types'
 
-interface SignupBody {
-  codigo?: string
-  nome?: string
-  email?: string
-  password?: string
-}
-
-export async function signup(c: Context<AppEnv>) {
-  const body = await c.req.json<SignupBody>().catch(() => null)
-  if (!body?.codigo || !body.nome || !body.email || !body.password) {
-    return c.json({ error: 'Campos obrigatórios: codigo, nome, email, password' }, 400)
-  }
-
-  if (body.codigo !== c.env.ADMIN_SIGNUP_CODE) {
-    return c.json({ error: 'Código de convite inválido' }, 403)
-  }
-
-  const anon = getAnonClient(c)
-  const { data: signUpData, error: signUpError } = await anon.auth.signUp({
-    email: body.email,
-    password: body.password,
-    options: { data: { tipo: 'admin', nome: body.nome } },
-  })
-
-  if (signUpError || !signUpData.user) {
-    return c.json({ error: signUpError?.message ?? 'Não foi possível criar a conta' }, 400)
-  }
-
-  if (!signUpData.session) {
-    return c.json(
-      { message: 'Conta criada. Confirme seu e-mail para poder fazer login.', pending_email_confirmation: true },
-      201,
-    )
-  }
-
-  return c.json(
-    {
-      user: { id: signUpData.user.id, email: body.email, nome: body.nome },
-      access_token: signUpData.session.access_token,
-      refresh_token: signUpData.session.refresh_token,
-    },
-    201,
-  )
+// Cadastro aberto foi desativado: novos administradores entram só por convite
+// (tela Administradores → Convidar), que define as permissões de cada um.
+export function signup(c: Context<AppEnv>) {
+  return c.json({ error: 'O cadastro de administradores agora é feito por convite. Peça um convite a quem gerencia o painel.' }, 410)
 }
 
 export async function login(c: Context<AppEnv>) {
@@ -62,6 +24,15 @@ export async function login(c: Context<AppEnv>) {
   if (error || !data.session) {
     return c.json({ error: 'E-mail ou senha inválidos' }, 401)
   }
+
+  const supabase = getUserClient(c, data.session.access_token)
+  const { data: admin } = await supabase.from('admins').select('id, nome, email, ativo').eq('id', data.user.id).maybeSingle()
+  if (!admin || !admin.ativo) {
+    return c.json({ error: 'Esta conta não tem acesso ativo ao painel. Peça um convite a quem gerencia os administradores.', sem_acesso: true }, 403)
+  }
+  c.set('supabase', supabase)
+  c.set('admin', { id: admin.id, nome: admin.nome ?? '', email: admin.email ?? data.user.email ?? '', permissoes: [] })
+  await registrarLog(c, 'Entrou no painel', null)
 
   return c.json({
     user: { id: data.user.id, email: data.user.email },

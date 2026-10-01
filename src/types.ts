@@ -19,10 +19,18 @@ export type Bindings = {
   CLOUDFLARE_ACCOUNT_ID?: string
 }
 
+export interface AdminLogado {
+  id: string
+  nome: string
+  email: string
+  permissoes: string[]
+}
+
 export type Variables = {
   supabase: SupabaseClient
   userId: string
   userEmail: string
+  admin: AdminLogado
 }
 
 export type AppEnv = { Bindings: Bindings; Variables: Variables }
