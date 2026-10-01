@@ -49,5 +49,9 @@ export async function moderarComentario(c: Context<AppEnv>) {
     returning id, status, motivo_moderacao, moderado_em
   `
   if (!comentario) return c.json({ error: 'Comentário não encontrado' }, 404)
+  // Confere o que o banco gravou: um gatilho pode recusar a mudança sem erro
+  if (comentario.status !== body.status) {
+    return c.json({ error: 'O banco não aplicou a moderação. Tente novamente ou avise a equipe técnica.' }, 500)
+  }
   return c.json(comentario)
 }
