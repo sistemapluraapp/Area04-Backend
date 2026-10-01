@@ -16,12 +16,20 @@ interface ItemBody {
   codigo?: string
   rotulo?: string
   icone?: string | null
+  descricao?: string | null
   escopo?: Escopo
   ordem?: number
   ativo?: boolean
 }
 
-const COLUNAS = 'id, tipo, codigo, rotulo, icone, escopo, ordem, ativo, created_at, updated_at'
+const COLUNAS = 'id, tipo, codigo, rotulo, descricao, icone, escopo, ordem, ativo, created_at, updated_at'
+
+function descricaoValida(valor: unknown): string | null | undefined {
+  if (valor === undefined) return undefined
+  if (valor === null) return null
+  const texto = String(valor).trim()
+  return texto ? texto.slice(0, 500) : null
+}
 
 export async function listarCatalogo(c: Context<AppEnv>) {
   const sql = getDb(c.env)
@@ -29,8 +37,8 @@ export async function listarCatalogo(c: Context<AppEnv>) {
   if (tipo && !TIPOS.includes(tipo as Tipo)) return c.json({ error: `tipo deve ser: ${TIPOS.join(', ')}` }, 400)
 
   const itens = tipo
-    ? await sql`select ${sql.unsafe(COLUNAS)} from catalogo_itens where tipo = ${tipo} order by ordem, rotulo`
-    : await sql`select ${sql.unsafe(COLUNAS)} from catalogo_itens order by tipo, ordem, rotulo`
+    ? await sql`select ${sql.unsafe(COLUNAS)} from catalogo_itens where tipo = ${tipo} order by rotulo`
+    : await sql`select ${sql.unsafe(COLUNAS)} from catalogo_itens order by tipo, rotulo`
   return c.json({ itens })
 }
 
@@ -47,8 +55,8 @@ export async function criarItemCatalogo(c: Context<AppEnv>) {
 
   try {
     const [item] = await sql`
-      insert into catalogo_itens (tipo, codigo, rotulo, icone, escopo, ordem)
-      values (${body.tipo}, ${body.codigo}, ${body.rotulo}, ${body.icone ?? null}, ${body.escopo ?? 'ambos'}, ${body.ordem ?? 0})
+      insert into catalogo_itens (tipo, codigo, rotulo, descricao, icone, escopo, ordem)
+      values (${body.tipo}, ${body.codigo}, ${body.rotulo}, ${descricaoValida(body.descricao) ?? null}, ${body.icone ?? null}, ${body.escopo ?? 'ambos'}, ${body.ordem ?? 0})
       returning ${sql.unsafe(COLUNAS)}
     `
     return c.json(item, 201)
@@ -70,6 +78,7 @@ export async function atualizarItemCatalogo(c: Context<AppEnv>) {
     update catalogo_itens set
       rotulo = coalesce(${body.rotulo ?? null}, rotulo),
       icone = ${body.icone === undefined ? sql`icone` : body.icone},
+      descricao = ${body.descricao === undefined ? sql`descricao` : descricaoValida(body.descricao) ?? null},
       escopo = coalesce(${body.escopo ?? null}, escopo),
       ordem = coalesce(${body.ordem ?? null}, ordem),
       ativo = coalesce(${body.ativo ?? null}, ativo),

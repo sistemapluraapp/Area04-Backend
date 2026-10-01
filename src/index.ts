@@ -42,7 +42,7 @@ import {
   marcarLida,
   marcarTodasLidas,
 } from './routes/notificacoes'
-import { processarAvaliacoesSinalizadas } from './lib/cron'
+import { processarAvaliacoesSinalizadas, purgarPaginasExcluidas } from './lib/cron'
 import type { AppEnv, Bindings } from './types'
 
 const app = new Hono<AppEnv>()
@@ -126,5 +126,6 @@ export default {
   fetch: app.fetch,
   scheduled: async (_event: ScheduledEvent, env: Bindings, ctx: ExecutionContext) => {
     ctx.waitUntil(processarAvaliacoesSinalizadas(env))
+    ctx.waitUntil(purgarPaginasExcluidas(env))
   },
 }

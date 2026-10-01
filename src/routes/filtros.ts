@@ -33,7 +33,7 @@ export async function listarFiltros(c: Context<AppEnv>) {
   const filtros = await sql`
     select ${sql.unsafe(COLUNAS)}
     from filtros_acessibilidade
-    order by tipo, categoria, ordem
+    order by tipo, categoria, rotulo
   `
   return c.json({ filtros })
 }

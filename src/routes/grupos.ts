@@ -24,7 +24,7 @@ export async function listarGrupos(c: Context<AppEnv>) {
     select ${sql.unsafe(COLUNAS)},
       (select count(*)::int from filtros_acessibilidade f where f.tipo = 'recurso_local' and f.categoria = g.codigo) as total_recursos
     from grupos_acessibilidade g
-    order by ordem, rotulo
+    order by rotulo
   `
   return c.json({ grupos })
 }

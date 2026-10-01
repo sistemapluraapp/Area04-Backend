@@ -49,3 +49,14 @@ export async function processarAvaliacoesSinalizadas(env: Bindings) {
     }
   }
 }
+
+// Lixeira: exclui de vez as páginas apagadas há mais de 30 dias
+export async function purgarPaginasExcluidas(env: Bindings) {
+  try {
+    const sql = getDb(env)
+    const [{ total }] = await sql`select internal.purgar_paginas_excluidas() as total`
+    if (total > 0) console.log(`Lixeira: ${total} página(s) excluída(s) definitivamente`)
+  } catch (err) {
+    console.error('Falha ao purgar páginas da lixeira:', err)
+  }
+}
