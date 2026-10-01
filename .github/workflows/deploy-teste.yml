@@ -4,7 +4,7 @@ name: Deploy Worker (teste)
 # sem tocar no Worker de produção.
 on:
   push:
-    branches: [claude/clever-knuth-bx0368]
+    branches: [claude/clever-knuth-bx0368, claude/stoic-babbage-0gea8e]
   workflow_dispatch:
 
 jobs:
