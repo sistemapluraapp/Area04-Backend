@@ -43,6 +43,8 @@ import {
   marcarTodasLidas,
 } from './routes/notificacoes'
 import { processarAvaliacoesSinalizadas, purgarPaginasExcluidas } from './lib/cron'
+import { hookEmailGrupo01 } from './routes/emailHook'
+import { atualizarModelo, enviarTesteModelo, listarModelos, previaModelo } from './routes/comunicacao'
 import type { AppEnv, Bindings } from './types'
 
 const app = new Hono<AppEnv>()
@@ -60,9 +62,11 @@ app.get('/health', (c) => c.json({ status: 'ok', area: c.env.AREA, service: 'bac
 app.post('/auth/signup', signup)
 app.post('/auth/login', login)
 app.post('/auth/refresh', refresh)
+// Chamado pelo Supabase Auth (grupo.01), autenticado pela assinatura do webhook
+app.post('/hooks/email-grupo01', hookEmailGrupo01)
 
 app.use('*', async (c, next) => {
-  const publicas = ['/health', '/auth/login', '/auth/signup', '/auth/refresh']
+  const publicas = ['/health', '/auth/login', '/auth/signup', '/auth/refresh', '/hooks/email-grupo01']
   if (publicas.includes(c.req.path)) return next()
   return requireAuth(c, next)
 })
@@ -101,6 +105,11 @@ app.get('/grupos-acessibilidade', listarGrupos)
 app.post('/grupos-acessibilidade', criarGrupo)
 app.patch('/grupos-acessibilidade/:codigo', atualizarGrupo)
 app.delete('/grupos-acessibilidade/:codigo', excluirGrupo)
+
+app.get('/comunicacao', listarModelos)
+app.put('/comunicacao/:chave', atualizarModelo)
+app.post('/comunicacao/:chave/previa', previaModelo)
+app.post('/comunicacao/:chave/teste', enviarTesteModelo)
 
 app.get('/catalogo', listarCatalogo)
 app.post('/catalogo', criarItemCatalogo)

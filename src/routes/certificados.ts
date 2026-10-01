@@ -1,6 +1,7 @@
 import type { Context } from 'hono'
 import { getDb } from '../lib/db'
 import { enviarEmail } from '../lib/email'
+import { escaparHtml, montarAviso } from '../lib/emailLayout'
 import type { AppEnv } from '../types'
 
 export async function listarPendentes(c: Context<AppEnv>) {
@@ -43,16 +44,16 @@ export async function atualizarStatus(c: Context<AppEnv>) {
     if (email) {
       const paginaNome = pagina?.nome ?? 'sua página'
       const aprovado = status === 'aprovado'
-      const assunto = aprovado
-        ? '[Plura] Certificado de acessibilidade aprovado'
-        : '[Plura] Certificado de acessibilidade reprovado'
-      const html = aprovado
-        ? `<p>O certificado de acessibilidade da página <strong>${paginaNome}</strong> foi aprovado.</p>`
-        : `<p>O certificado de acessibilidade da página <strong>${paginaNome}</strong> foi reprovado.</p>${
-            motivo ? `<p>Motivo: ${motivo}</p>` : ''
-          }`
+      const nomeSeguro = escaparHtml(paginaNome)
+      const assunto = aprovado ? 'Certificado de acessibilidade aprovado na Plura' : 'Certificado de acessibilidade reprovado na Plura'
+      const html = montarAviso(
+        aprovado ? 'Certificado aprovado!' : 'Certificado não aprovado',
+        aprovado
+          ? `<p>O certificado de acessibilidade da página <strong>${nomeSeguro}</strong> foi aprovado. Parabéns pelo cuidado com a acessibilidade!</p>`
+          : `<p>O certificado de acessibilidade da página <strong>${nomeSeguro}</strong> não foi aprovado.</p>${motivo ? `<p><strong>Motivo:</strong> ${escaparHtml(motivo)}</p>` : ''}`,
+      )
 
-      await enviarEmail(c.env.RESEND_API_KEY, email, assunto, html)
+      await enviarEmail(c.env.RESEND_API_KEY, email, assunto, html, c.env.EMAIL_REMETENTE)
     }
   } catch {
     // não bloqueia a resposta de sucesso

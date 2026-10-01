@@ -1,5 +1,6 @@
 import { getAdminDb, getDb } from './db'
 import { enviarEmail } from './email'
+import { escaparHtml, montarAviso } from './emailLayout'
 import type { Bindings } from '../types'
 
 export async function processarAvaliacoesSinalizadas(env: Bindings) {
@@ -37,8 +38,9 @@ export async function processarAvaliacoesSinalizadas(env: Bindings) {
           await enviarEmail(
             env.RESEND_API_KEY,
             email,
-            '[Plura] Nova avaliação sinalizada para moderação',
-            `<p>${corpo}</p>`,
+            'Nova avaliação sinalizada para moderação na Plura',
+            montarAviso(titulo, `<p>${escaparHtml(corpo)}</p>`, { texto: 'Abrir moderação', link: 'https://area04-frontend.pages.dev/moderacao' }),
+            env.EMAIL_REMETENTE,
           )
         }
       }

@@ -18,5 +18,6 @@ export async function requireAuth(c: Context<AppEnv>, next: Next) {
 
   c.set('supabase', supabase)
   c.set('userId', data.user.id)
+  c.set('userEmail', data.user.email ?? '')
   await next()
 }

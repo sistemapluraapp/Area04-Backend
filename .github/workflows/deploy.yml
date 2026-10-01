@@ -18,6 +18,10 @@ jobs:
         run: |
           echo "${{ secrets.ADMIN_SIGNUP_CODE }}" | npx wrangler secret put ADMIN_SIGNUP_CODE
           echo "${{ secrets.RESEND_API_KEY }}" | npx wrangler secret put RESEND_API_KEY
+          # Hook de e-mail do Supabase: só grava se o secret existir no GitHub.
+          if [ -n "${{ secrets.SEND_EMAIL_HOOK_SECRET }}" ]; then
+            echo "${{ secrets.SEND_EMAIL_HOOK_SECRET }}" | npx wrangler secret put SEND_EMAIL_HOOK_SECRET
+          fi
           # Consumo de infraestrutura: só grava se o secret existir no GitHub.
           if [ -n "${{ secrets.CLOUDFLARE_ANALYTICS_TOKEN }}" ]; then
             echo "${{ secrets.CLOUDFLARE_ANALYTICS_TOKEN }}" | npx wrangler secret put CLOUDFLARE_ANALYTICS_TOKEN
