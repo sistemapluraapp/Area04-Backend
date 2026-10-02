@@ -158,3 +158,7 @@ as $$
   order by n.criada_em
   limit p_limite
 $$;
+
+-- Relatório de eventos no ADM (Área 04)
+create policy area04_select_eventos on public.eventos for select to area04_backend using (true);
+create policy area04_select_evento_interesses on public.evento_interesses for select to area04_backend using (true);

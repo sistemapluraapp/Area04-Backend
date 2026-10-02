@@ -1,7 +1,7 @@
 // Funcionalidades do painel: cada administrador recebe uma ou mais.
 // São as colunas da matriz de permissões na tela "Administradores".
 export const PERMISSOES = [
-  { codigo: 'indicadores', rotulo: 'Indicadores e infraestrutura' },
+  { codigo: 'indicadores', rotulo: 'Indicadores, eventos e infraestrutura' },
   { codigo: 'moderacao', rotulo: 'Moderação' },
   { codigo: 'certificados', rotulo: 'Certificados' },
   { codigo: 'contas', rotulo: 'Contas e convites Gov' },
@@ -19,6 +19,7 @@ const ROTAS: { prefixo: string; permissao: Permissao }[] = [
   { prefixo: '/indicadores', permissao: 'indicadores' },
   { prefixo: '/estatisticas', permissao: 'indicadores' },
   { prefixo: '/infraestrutura', permissao: 'indicadores' },
+  { prefixo: '/eventos', permissao: 'indicadores' },
   { prefixo: '/comentarios', permissao: 'moderacao' },
   { prefixo: '/avaliacoes', permissao: 'moderacao' },
   { prefixo: '/denuncias', permissao: 'moderacao' },

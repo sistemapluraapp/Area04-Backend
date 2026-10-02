@@ -47,6 +47,7 @@ import { hookEmailGrupo01 } from './routes/emailHook'
 import { aceitarConviteAdmin, atualizarAdmin, cancelarConvite, convidarAdmin, exportarLogsCsv, listarAdmins, listarLogs, meuAcesso, reenviarConvite, verConviteAdmin } from './routes/admins'
 import { atualizarModelo, enviarTesteModelo, listarModelos, previaModelo } from './routes/comunicacao'
 import { atualizarTermo, listarTermos } from './routes/termos'
+import { interessadosEventoAdm, listarEventosAdm } from './routes/eventos'
 import { listarCidades, listarEstados } from './routes/localidades'
 import type { AppEnv, Bindings } from './types'
 
@@ -128,6 +129,8 @@ app.put('/comunicacao/:chave', atualizarModelo)
 app.post('/comunicacao/:chave/previa', previaModelo)
 app.post('/comunicacao/:chave/teste', enviarTesteModelo)
 app.get('/termos', listarTermos)
+app.get('/eventos', listarEventosAdm)
+app.get('/eventos/:id/interessados', interessadosEventoAdm)
 app.get('/localidades/:pais/estados', listarEstados)
 app.get('/localidades/:pais/estados/:estado/cidades', listarCidades)
 app.put('/termos/:chave', atualizarTermo)
