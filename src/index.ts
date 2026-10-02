@@ -42,7 +42,7 @@ import {
   marcarLida,
   marcarTodasLidas,
 } from './routes/notificacoes'
-import { processarAvaliacoesSinalizadas, purgarPaginasExcluidas } from './lib/cron'
+import { processarAvaliacoesSinalizadas, purgarPaginasExcluidas, enviarAvisosFavoritos } from './lib/cron'
 import { hookEmailGrupo01 } from './routes/emailHook'
 import { aceitarConviteAdmin, atualizarAdmin, cancelarConvite, convidarAdmin, exportarLogsCsv, listarAdmins, listarLogs, meuAcesso, reenviarConvite, verConviteAdmin } from './routes/admins'
 import { atualizarModelo, enviarTesteModelo, listarModelos, previaModelo } from './routes/comunicacao'
@@ -157,5 +157,6 @@ export default {
   scheduled: async (_event: ScheduledEvent, env: Bindings, ctx: ExecutionContext) => {
     ctx.waitUntil(processarAvaliacoesSinalizadas(env))
     ctx.waitUntil(purgarPaginasExcluidas(env))
+    ctx.waitUntil(enviarAvisosFavoritos(env))
   },
 }

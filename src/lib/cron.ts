@@ -1,5 +1,5 @@
 import { getAdminDb, getDb } from './db'
-import { enviarEmail } from './email'
+import { enviarEmail, enviarEmailObrigatorio } from './email'
 import { escaparHtml, montarAviso } from './emailLayout'
 import type { Bindings } from '../types'
 
@@ -61,4 +61,32 @@ export async function purgarPaginasExcluidas(env: Bindings) {
   } catch (err) {
     console.error('Falha ao purgar páginas da lixeira:', err)
   }
+}
+
+// Avisos de locais favoritos (Etapa 6b): o banco cria o aviso no sininho na
+// hora e deixa o e-mail na fila; aqui ele sai pelo Resend.
+export async function enviarAvisosFavoritos(env: Bindings) {
+  const sql = getDb(env)
+  const pendentes = await sql`select * from internal.avisos_email_pendentes(100)`
+  if (pendentes.length === 0) return
+
+  const site = env.AREA01_FRONTEND_URL ?? 'https://plura.app.br'
+  const enviados: string[] = []
+  for (const aviso of pendentes) {
+    if (!aviso.email) {
+      enviados.push(aviso.id)
+      continue
+    }
+    try {
+      const nome = aviso.nome ? `, ${escaparHtml(String(aviso.nome).split(' ')[0])}` : ''
+      const corpo = `<p>Olá${nome}!</p><p>${escaparHtml(aviso.corpo ?? '')}</p><p style="font-size:13px;color:#667085">Você recebe este aviso porque favoritou este local na Plura. Para mudar, acesse seu perfil.</p>`
+      const link = aviso.pagina_id ? `${site}/pagina?id=${aviso.pagina_id}` : site
+      await enviarEmailObrigatorio(env.RESEND_API_KEY, aviso.email, aviso.titulo, montarAviso(aviso.titulo, corpo, { texto: 'Ver a página', link }), env.EMAIL_REMETENTE)
+      enviados.push(aviso.id)
+    } catch (err) {
+      // Fica na fila e tenta de novo na próxima rodada (até 2 dias)
+      console.error('Falha ao enviar aviso de favorito:', err)
+    }
+  }
+  if (enviados.length) await sql`select internal.marcar_avisos_email_enviados(${enviados}::uuid[])`
 }

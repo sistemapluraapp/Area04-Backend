@@ -26,6 +26,7 @@ GRUPO01_SUPABASE_URL = "https://uoembacxxnkuwldmdgcu.supabase.co"
 # Trocar para "Plura <nao-responda@plura.app.br>" depois de verificar o domínio no Resend
 EMAIL_REMETENTE = "Plura <onboarding@resend.dev>"
 AREA03_FRONTEND_URL = "https://gov.plura.app.br"
+AREA01_FRONTEND_URL = "https://plura.app.br"
 
 # Secrets de verdade (nunca commitados): configurados automaticamente pelo
 # workflow de deploy (.github/workflows/deploy.yml) a partir de secrets do
@@ -58,3 +59,4 @@ GRUPO01_SUPABASE_URL = "https://uoembacxxnkuwldmdgcu.supabase.co"
 # Trocar para "Plura <nao-responda@plura.app.br>" depois de verificar o domínio no Resend
 EMAIL_REMETENTE = "Plura <onboarding@resend.dev>"
 AREA03_FRONTEND_URL = "https://teste.area03-frontend.pages.dev"
+AREA01_FRONTEND_URL = "https://teste.area01-frontend.pages.dev"
