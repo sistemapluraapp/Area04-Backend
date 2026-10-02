@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 export type Bindings = {
+  CSC_API_KEY?: string
   SUPABASE_URL: string
   SUPABASE_ANON_KEY: string
   AREA: string
@@ -10,6 +11,7 @@ export type Bindings = {
   RESEND_API_KEY: string
   // Remetente dos e-mails (ex.: "Plura <nao-responda@plura.app.br>")
   EMAIL_REMETENTE?: string
+  AREA03_FRONTEND_URL?: string
   // URL do Supabase do grupo.01 (usuários, B2B e Gov) — monta os links de confirmação
   GRUPO01_SUPABASE_URL: string
   // Segredo do Send Email Hook do grupo.01 (painel do Supabase → Auth → Hooks)

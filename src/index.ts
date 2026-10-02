@@ -17,7 +17,7 @@ import {
 } from './routes/contas'
 import { listarSinalizadas, listarTodas } from './routes/avaliacoes'
 import { listarPendentes, atualizarStatus } from './routes/certificados'
-import { criarConvite, listarConvites } from './routes/convitesGov'
+import { cancelarConvite as cancelarConviteGov, criarConvite, listarConvites, reenviarConvite as reenviarConviteGov } from './routes/convitesGov'
 import {
   listarFiltros,
   criarFiltro,
@@ -47,6 +47,7 @@ import { hookEmailGrupo01 } from './routes/emailHook'
 import { aceitarConviteAdmin, atualizarAdmin, cancelarConvite, convidarAdmin, exportarLogsCsv, listarAdmins, listarLogs, meuAcesso, reenviarConvite, verConviteAdmin } from './routes/admins'
 import { atualizarModelo, enviarTesteModelo, listarModelos, previaModelo } from './routes/comunicacao'
 import { atualizarTermo, listarTermos } from './routes/termos'
+import { listarCidades, listarEstados } from './routes/localidades'
 import type { AppEnv, Bindings } from './types'
 
 const app = new Hono<AppEnv>()
@@ -108,6 +109,8 @@ app.patch('/certificados/:id', atualizarStatus)
 
 app.post('/convites-gov', criarConvite)
 app.get('/convites-gov', listarConvites)
+app.post('/convites-gov/:token/reenviar', reenviarConviteGov)
+app.delete('/convites-gov/:token', cancelarConviteGov)
 
 app.get('/filtros', listarFiltros)
 app.post('/filtros', criarFiltro)
@@ -125,6 +128,8 @@ app.put('/comunicacao/:chave', atualizarModelo)
 app.post('/comunicacao/:chave/previa', previaModelo)
 app.post('/comunicacao/:chave/teste', enviarTesteModelo)
 app.get('/termos', listarTermos)
+app.get('/localidades/:pais/estados', listarEstados)
+app.get('/localidades/:pais/estados/:estado/cidades', listarCidades)
 app.put('/termos/:chave', atualizarTermo)
 
 app.get('/catalogo', listarCatalogo)
