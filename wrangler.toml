@@ -23,8 +23,7 @@ SUPABASE_URL = "https://sbmvjrfswhbkioynrajd.supabase.co"
 SUPABASE_ANON_KEY = "sb_publishable_xg7SFgfKYw1z35VM3UPd_w_iA-LpXJ7"
 AREA = "04"
 GRUPO01_SUPABASE_URL = "https://uoembacxxnkuwldmdgcu.supabase.co"
-# Trocar para "Plura <nao-responda@plura.app.br>" depois de verificar o domínio no Resend
-EMAIL_REMETENTE = "Plura <onboarding@resend.dev>"
+EMAIL_REMETENTE = "Plura <nao-responda@plura.app.br>"
 AREA03_FRONTEND_URL = "https://gov.plura.app.br"
 AREA01_FRONTEND_URL = "https://plura.app.br"
 
@@ -56,7 +55,6 @@ SUPABASE_URL = "https://sbmvjrfswhbkioynrajd.supabase.co"
 SUPABASE_ANON_KEY = "sb_publishable_xg7SFgfKYw1z35VM3UPd_w_iA-LpXJ7"
 AREA = "04"
 GRUPO01_SUPABASE_URL = "https://uoembacxxnkuwldmdgcu.supabase.co"
-# Trocar para "Plura <nao-responda@plura.app.br>" depois de verificar o domínio no Resend
-EMAIL_REMETENTE = "Plura <onboarding@resend.dev>"
+EMAIL_REMETENTE = "Plura <nao-responda@plura.app.br>"
 AREA03_FRONTEND_URL = "https://teste.area03-frontend.pages.dev"
 AREA01_FRONTEND_URL = "https://teste.area01-frontend.pages.dev"

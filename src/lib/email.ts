@@ -1,6 +1,6 @@
-// Remetente padrão até o domínio plura.app.br ser verificado no Resend.
+// Remetente padrão: domínio plura.app.br verificado no Resend.
 // Depois, basta trocar EMAIL_REMETENTE no wrangler.toml.
-export const REMETENTE_PADRAO = 'Plura <onboarding@resend.dev>'
+export const REMETENTE_PADRAO = 'Plura <nao-responda@plura.app.br>'
 
 async function postarResend(apiKey: string, remetente: string, to: string, subject: string, html: string) {
   const res = await fetch('https://api.resend.com/emails', {
