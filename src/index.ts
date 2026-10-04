@@ -47,6 +47,7 @@ import { hookEmailGrupo01 } from './routes/emailHook'
 import { aceitarConviteAdmin, atualizarAdmin, cancelarConvite, convidarAdmin, exportarLogsCsv, listarAdmins, listarLogs, meuAcesso, reenviarConvite, verConviteAdmin } from './routes/admins'
 import { atualizarModelo, enviarTesteModelo, listarModelos, previaModelo } from './routes/comunicacao'
 import { atualizarTermo, listarTermos } from './routes/termos'
+import { esqueciSenhaAdmin, redefinirSenhaAdmin } from './routes/senhaAdmin'
 import { interessadosEventoAdm, listarEventosAdm } from './routes/eventos'
 import { listarCidades, listarEstados } from './routes/localidades'
 import type { AppEnv, Bindings } from './types'
@@ -71,9 +72,11 @@ app.post('/hooks/email-grupo01', hookEmailGrupo01)
 // Convite de administrador: o convidado ainda não tem login
 app.get('/convites-admin/:token', verConviteAdmin)
 app.post('/convites-admin/:token/aceitar', aceitarConviteAdmin)
+app.post('/auth/esqueci-senha', esqueciSenhaAdmin)
+app.post('/auth/redefinir-senha', redefinirSenhaAdmin)
 
 app.use('*', async (c, next) => {
-  const publicas = ['/health', '/auth/login', '/auth/signup', '/auth/refresh', '/hooks/email-grupo01']
+  const publicas = ['/health', '/auth/login', '/auth/signup', '/auth/refresh', '/auth/esqueci-senha', '/auth/redefinir-senha', '/hooks/email-grupo01']
   if (publicas.includes(c.req.path) || c.req.path.startsWith('/convites-admin/')) return next()
   return requireAuth(c, next)
 })
