@@ -32,6 +32,7 @@ import {
   reordenarCatalogo,
   excluirItemCatalogo,
 } from './routes/catalogo'
+import { aplicarEtiqueta, atualizarEtiqueta, criarEtiqueta, excluirEtiqueta, listarEtiquetas, paginasParaEtiquetar } from './routes/etiquetas'
 import { listarGrupos, criarGrupo, atualizarGrupo, excluirGrupo } from './routes/grupos'
 import { listarDenuncias, atualizarDenuncia } from './routes/denuncias'
 import { listarComentarios, moderarComentario } from './routes/comentarios'
@@ -137,6 +138,13 @@ app.get('/eventos/:id/interessados', interessadosEventoAdm)
 app.get('/localidades/:pais/estados', listarEstados)
 app.get('/localidades/:pais/estados/:estado/cidades', listarCidades)
 app.put('/termos/:chave', atualizarTermo)
+
+app.get('/etiquetas', listarEtiquetas)
+app.post('/etiquetas', criarEtiqueta)
+app.get('/etiquetas/paginas', paginasParaEtiquetar)
+app.put('/etiquetas/paginas/:paginaId', aplicarEtiqueta)
+app.patch('/etiquetas/:id', atualizarEtiqueta)
+app.delete('/etiquetas/:id', excluirEtiqueta)
 
 app.get('/catalogo', listarCatalogo)
 app.post('/catalogo', criarItemCatalogo)
