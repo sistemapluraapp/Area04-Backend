@@ -223,6 +223,12 @@ interface EtapaBody {
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
+// Literal de array do Postgres ('{a,b}'): com fetch_types desligado (Hyperdrive),
+// o postgres.js não serializa arrays JS como parâmetro. Só recebe ids já validados.
+function arrayUuid(ids: string[]) {
+  return `{${ids.filter((id) => UUID.test(id)).join(',')}}`
+}
+
 export async function salvarEstrutura(c: Context<AppEnv>) {
   const sql = getDb(c.env)
   const certificacaoId = c.req.param('id') as string
@@ -313,11 +319,11 @@ export async function salvarEstrutura(c: Context<AppEnv>) {
     await tx`
       delete from certificacao_requisitos r using certificacao_etapas e
       where e.id = r.etapa_id and e.certificacao_id = ${certificacaoId}
-        and not (r.id = any(${requisitosMantidos}::uuid[]))
+        and not (r.id = any(${arrayUuid(requisitosMantidos)}::uuid[]))
     `
     await tx`
       delete from certificacao_etapas
-      where certificacao_id = ${certificacaoId} and not (id = any(${etapasMantidas}::uuid[]))
+      where certificacao_id = ${certificacaoId} and not (id = any(${arrayUuid(etapasMantidas)}::uuid[]))
     `
     await tx`update certificacoes set updated_at = now() where id = ${certificacaoId}`
   })
