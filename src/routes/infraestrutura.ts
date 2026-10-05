@@ -18,7 +18,31 @@ type Projeto = {
   autenticacoes_mes: number
   maiores_tabelas: { nome: string; bytes: number }[]
 }
-type Limite = { recurso: string; rotulo: string; limite: number; unidade: string; periodo: 'total' | 'mes' | 'dia'; ordem: number }
+type Limite = { recurso: string; rotulo: string; limite: number; unidade: string; periodo: 'total' | 'mes' | 'dia'; ordem: number; dia_inicio_ciclo: number }
+
+// Operações do R2 que contam no plano grátis (developers.cloudflare.com/r2/pricing).
+// DeleteObject, DeleteBucket e AbortMultipartUpload são grátis e ficam de fora.
+const R2_CLASSE_A = new Set([
+  'ListBuckets', 'PutBucket', 'ListObjects', 'PutObject', 'CopyObject', 'CompleteMultipartUpload', 'CreateMultipartUpload',
+  'LifecycleStorageTierTransition', 'ListMultipartUploads', 'UploadPart', 'UploadPartCopy', 'ListParts', 'PutBucketEncryption',
+  'PutBucketCors', 'PutBucketLifecycleConfiguration',
+])
+const R2_CLASSE_B = new Set([
+  'HeadBucket', 'HeadObject', 'GetObject', 'UsageSummary', 'GetBucketEncryption', 'GetBucketLocation', 'GetBucketCors',
+  'GetBucketLifecycleConfiguration',
+])
+
+// Início do ciclo de cobrança que contém "agora" (ex.: dia 21 → de 21 a 21)
+function inicioDoCiclo(agora: Date, dia: number) {
+  const y = agora.getUTCFullYear()
+  const m = agora.getUTCMonth()
+  return agora.getUTCDate() >= dia ? Date.UTC(y, m, dia) : Date.UTC(y, m - 1, dia)
+}
+
+function fimDoCiclo(inicio: number) {
+  const d = new Date(inicio)
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate())
+}
 
 const PAINEL_USO_SUPABASE = 'https://supabase.com/dashboard/org/hmfrhiugkfnkcferwuyw/usage'
 const DIA_MS = 86_400_000
@@ -91,16 +115,89 @@ async function lerRequisicoesCloudflare(env: Bindings, agora: Date) {
   }
 }
 
+type DetalheR2 = { nome: string; uso: number }
+type LeituraR2 = { armazenamento: { total: number; detalhes: DetalheR2[] }; classeA: { total: number; detalhes: DetalheR2[] }; classeB: { total: number; detalhes: DetalheR2[] } }
+
+// Uso do Cloudflare R2 (arquivos das certificações): espaço ocupado agora e
+// operações classe A/B desde o início do ciclo de cobrança. Mesma API e
+// mesmo token das requisições dos Workers.
+async function lerR2Cloudflare(env: Bindings, agora: Date, inicioCiclo: number): Promise<LeituraR2 | { erro: string }> {
+  if (!env.CLOUDFLARE_ANALYTICS_TOKEN || !env.CLOUDFLARE_ACCOUNT_ID) return { erro: 'aguardando-token' }
+  const query = `query($conta: string!, $inicio: Time!, $inicioEspaco: Time!, $fim: Time!) {
+    viewer { accounts(filter: { accountTag: $conta }) {
+      r2OperationsAdaptiveGroups(limit: 10000, filter: { datetime_geq: $inicio, datetime_leq: $fim }) {
+        sum { requests }
+        dimensions { actionType bucketName }
+      }
+      r2StorageAdaptiveGroups(limit: 10000, filter: { datetime_geq: $inicioEspaco, datetime_leq: $fim }, orderBy: [datetime_DESC]) {
+        max { payloadSize metadataSize }
+        dimensions { bucketName datetime }
+      }
+    } }
+  }`
+  try {
+    const resp = await fetch('https://api.cloudflare.com/client/v4/graphql', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${env.CLOUDFLARE_ANALYTICS_TOKEN}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query,
+        variables: {
+          conta: env.CLOUDFLARE_ACCOUNT_ID,
+          inicio: new Date(inicioCiclo).toISOString(),
+          inicioEspaco: new Date(agora.getTime() - 2 * DIA_MS).toISOString(),
+          fim: agora.toISOString(),
+        },
+      }),
+    })
+    const json = (await resp.json()) as {
+      data?: { viewer?: { accounts?: {
+        r2OperationsAdaptiveGroups?: { sum: { requests: number }; dimensions: { actionType: string; bucketName: string } }[]
+        r2StorageAdaptiveGroups?: { max: { payloadSize: number; metadataSize: number }; dimensions: { bucketName: string; datetime: string } }[]
+      }[] } }
+      errors?: { message: string }[] | null
+    }
+    if (!resp.ok || json.errors?.length) {
+      console.error('GraphQL R2:', resp.status, JSON.stringify(json.errors))
+      return { erro: 'Não foi possível ler o uso do R2 (verifique o token)' }
+    }
+    const conta = json.data?.viewer?.accounts?.[0]
+    const somar = (classe: Set<string>) => {
+      const porBucket = new Map<string, number>()
+      for (const l of conta?.r2OperationsAdaptiveGroups ?? []) {
+        if (classe.has(l.dimensions.actionType)) porBucket.set(l.dimensions.bucketName, (porBucket.get(l.dimensions.bucketName) ?? 0) + l.sum.requests)
+      }
+      const detalhes = [...porBucket].map(([nome, uso]) => ({ nome, uso })).sort((a, b) => b.uso - a.uso)
+      return { total: detalhes.reduce((s, d) => s + d.uso, 0), detalhes }
+    }
+    // Espaço: a leitura mais recente de cada bucket (a lista vem da mais nova para a mais antiga)
+    const espaco = new Map<string, number>()
+    for (const l of conta?.r2StorageAdaptiveGroups ?? []) {
+      if (!espaco.has(l.dimensions.bucketName)) espaco.set(l.dimensions.bucketName, Number(l.max.payloadSize) + Number(l.max.metadataSize))
+    }
+    const detalhesEspaco = [...espaco].map(([nome, uso]) => ({ nome, uso })).sort((a, b) => b.uso - a.uso)
+    return {
+      armazenamento: { total: detalhesEspaco.reduce((s, d) => s + d.uso, 0), detalhes: detalhesEspaco },
+      classeA: somar(R2_CLASSE_A),
+      classeB: somar(R2_CLASSE_B),
+    }
+  } catch (e) {
+    console.error('GraphQL R2 falhou:', e)
+    return { erro: 'Não foi possível ler o uso do R2' }
+  }
+}
+
 export async function consumoInfraestrutura(c: Context<AppEnv>) {
   const sql = getDb(c.env)
   const agora = new Date()
   const hoje = agora.toISOString().slice(0, 10)
 
-  const [limites, grupo01, grupo02, cloudflare] = await Promise.all([
-    sql<Limite[]>`select recurso, rotulo, limite::float8 as limite, unidade, periodo, ordem from infraestrutura_limites order by ordem`,
+  const limites = await sql<Limite[]>`select recurso, rotulo, limite::float8 as limite, unidade, periodo, ordem, dia_inicio_ciclo from infraestrutura_limites order by ordem`
+  const diaCicloR2 = limites.find((l) => l.recurso.startsWith('r2_'))?.dia_inicio_ciclo ?? 1
+  const [grupo01, grupo02, cloudflare, r2] = await Promise.all([
     lerProjeto(c.env, false),
     lerProjeto(c.env, true),
     lerRequisicoesCloudflare(c.env, agora),
+    lerR2Cloudflare(c.env, agora, inicioDoCiclo(agora, diaCicloR2)),
   ])
 
   const projetos = [
@@ -122,11 +219,15 @@ export async function consumoInfraestrutura(c: Context<AppEnv>) {
       'erro' in cloudflare
         ? { uso: null, erro: cloudflare.erro }
         : { uso: cloudflare.total, detalhes: cloudflare.detalhes },
+    r2_armazenamento: 'erro' in r2 ? { uso: null, erro: r2.erro } : { uso: r2.armazenamento.total, detalhes: r2.armazenamento.detalhes },
+    r2_operacoes_a: 'erro' in r2 ? { uso: null, erro: r2.erro } : { uso: r2.classeA.total, detalhes: r2.classeA.detalhes },
+    r2_operacoes_b: 'erro' in r2 ? { uso: null, erro: r2.erro } : { uso: r2.classeB.total, detalhes: r2.classeB.detalhes },
   }
 
   // Guarda a leitura do dia (só quando os dois projetos responderam, para a
   // tendência não enxergar uma queda falsa) e lê o histórico dos últimos 30 dias.
-  const gravar = Object.entries(leituras).filter(([recurso, l]) => l.uso !== null && (completo || recurso === 'requisicoes'))
+  const independentes = ['requisicoes', 'r2_armazenamento', 'r2_operacoes_a', 'r2_operacoes_b']
+  const gravar = Object.entries(leituras).filter(([recurso, l]) => l.uso !== null && (completo || independentes.includes(recurso)))
   for (const [recurso, l] of gravar) {
     await sql`
       insert into infraestrutura_historico (dia, recurso, uso) values (${hoje}, ${recurso}, ${l.uso})
@@ -167,13 +268,16 @@ export async function consumoInfraestrutura(c: Context<AppEnv>) {
         if (diasAteTeto <= 30) fase = maisGrave(fase, 'planeje')
       }
     } else {
-      const [inicio, fim] = lim.periodo === 'mes' ? [inicioMes, fimMes] : [inicioDia, inicioDia + DIA_MS]
+      // Mensal: mês do calendário, ou o ciclo de cobrança quando não começa no dia 1º (R2)
+      const inicioCiclo = lim.dia_inicio_ciclo > 1 ? inicioDoCiclo(agora, lim.dia_inicio_ciclo) : inicioMes
+      const fimCiclo = lim.dia_inicio_ciclo > 1 ? fimDoCiclo(inicioCiclo) : fimMes
+      const [inicio, fim] = lim.periodo === 'mes' ? [inicioCiclo, fimCiclo] : [inicioDia, inicioDia + DIA_MS]
       const decorrido = (agora.getTime() - inicio) / (fim - inicio)
       const minimo = lim.periodo === 'mes' ? 3 / 30 : 1 / 24
       if (decorrido < minimo) previsao = { texto: 'Previsão disponível mais adiante no período' }
       else {
         const projetado = (uso / decorrido / lim.limite) * 100
-        const quando = lim.periodo === 'mes' ? 'no fim do mês' : 'no fim do dia (UTC)'
+        const quando = lim.periodo === 'mes' ? (lim.dia_inicio_ciclo > 1 ? 'no fim do ciclo de cobrança' : 'no fim do mês') : 'no fim do dia (UTC)'
         previsao = { texto: `No ritmo atual, chega a ${Math.round(projetado)}% do teto ${quando}`, percentual_fim_periodo: projetado }
         if (projetado >= 100) fase = maisGrave(fase, 'planeje')
       }
