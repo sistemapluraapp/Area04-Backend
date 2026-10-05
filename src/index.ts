@@ -32,6 +32,16 @@ import {
   reordenarCatalogo,
   excluirItemCatalogo,
 } from './routes/catalogo'
+import {
+  atualizarCertificacao,
+  criarCertificacao,
+  excluirCertificacao,
+  listarCertificacoes,
+  obterCertificacao,
+  obterPaginaCertificacoes,
+  salvarEstrutura,
+  salvarPaginaCertificacoes,
+} from './routes/certificacoes'
 import { aplicarEtiqueta, atualizarEtiqueta, criarEtiqueta, excluirEtiqueta, listarEtiquetas, paginasParaEtiquetar } from './routes/etiquetas'
 import { listarGrupos, criarGrupo, atualizarGrupo, excluirGrupo } from './routes/grupos'
 import { listarDenuncias, atualizarDenuncia } from './routes/denuncias'
@@ -108,6 +118,16 @@ app.delete('/contas/:id', excluirConta)
 
 app.get('/avaliacoes/sinalizadas', listarSinalizadas)
 app.get('/avaliacoes/todas', listarTodas)
+
+// Etapa 8a: certificações (configuração no ADM)
+app.get('/certificacoes', listarCertificacoes)
+app.post('/certificacoes', criarCertificacao)
+app.get('/certificacoes/:id', obterCertificacao)
+app.patch('/certificacoes/:id', atualizarCertificacao)
+app.delete('/certificacoes/:id', excluirCertificacao)
+app.put('/certificacoes/:id/estrutura', salvarEstrutura)
+app.get('/certificacoes-pagina', obterPaginaCertificacoes)
+app.put('/certificacoes-pagina', salvarPaginaCertificacoes)
 
 app.get('/certificados/pendentes', listarPendentes)
 app.patch('/certificados/:id', atualizarStatus)
