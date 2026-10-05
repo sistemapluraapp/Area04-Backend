@@ -3,6 +3,8 @@ name: Deploy Worker
 on:
   push:
     branches: [main, claude/great-franklin-kisti3]
+  # Publicação manual (ex.: depois de cadastrar ou trocar um secret no GitHub)
+  workflow_dispatch:
 
 jobs:
   deploy:
