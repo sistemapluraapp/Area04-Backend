@@ -10,7 +10,7 @@ import type { AppEnv } from '../types'
 // convidado define a própria senha) e log das ações.
 
 const DIAS_CONVITE = 7
-const URL_PAINEL = 'https://area04-frontend.pages.dev'
+import { URL_PAINEL } from '../lib/urlPainel'
 
 function validarPermissoes(valor: unknown): string[] | null {
   if (!Array.isArray(valor) || valor.some((p) => typeof p !== 'string' || !CODIGOS_PERMISSAO.includes(p))) return null

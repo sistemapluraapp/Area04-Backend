@@ -8,7 +8,7 @@ import type { AppEnv } from '../types'
 // "Esqueci minha senha" do painel: link de uso único, válido por 1 hora,
 // enviado pelo nosso backend (o grupo.02 não envia e-mails pelo Supabase).
 
-const URL_PAINEL = 'https://area04-frontend.pages.dev'
+import { URL_PAINEL } from '../lib/urlPainel'
 const RESPOSTA = 'Se este e-mail for de um administrador ativo, enviamos um link para criar uma nova senha. Confira também a caixa de spam.'
 
 async function gerarToken(): Promise<{ token: string; hash: string }> {

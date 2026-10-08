@@ -1,3 +1,4 @@
+import { URL_PAINEL } from './urlPainel'
 import { getAdminDb, getDb } from './db'
 import { enviarEmail, enviarEmailObrigatorio } from './email'
 import { escaparHtml, montarAviso } from './emailLayout'
@@ -39,7 +40,7 @@ export async function processarAvaliacoesSinalizadas(env: Bindings) {
             env.RESEND_API_KEY,
             email,
             'Nova avaliação sinalizada para moderação na Plura',
-            montarAviso(titulo, `<p>${escaparHtml(corpo)}</p>`, { texto: 'Abrir moderação', link: 'https://area04-frontend.pages.dev/moderacao' }),
+            montarAviso(titulo, `<p>${escaparHtml(corpo)}</p>`, { texto: 'Abrir moderação', link: `${URL_PAINEL}/moderacao` }),
             env.EMAIL_REMETENTE,
           )
         }
