@@ -1,3 +1,4 @@
+import { avaliarResposta, baixarArquivoInscricao, concluirAnalise, confirmarVistoria, listarInscricoes, obterInscricao } from './routes/inscricoesCertificacao'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { requireAuth } from './middleware/auth'
@@ -127,6 +128,12 @@ app.patch('/certificacoes/:id', atualizarCertificacao)
 app.delete('/certificacoes/:id', excluirCertificacao)
 app.put('/certificacoes/:id/estrutura', salvarEstrutura)
 app.get('/certificacoes-pagina', obterPaginaCertificacoes)
+app.get('/certificacoes-inscricoes', listarInscricoes)
+app.get('/certificacoes-inscricoes/:id', obterInscricao)
+app.get('/certificacoes-inscricoes/:id/arquivo', baixarArquivoInscricao)
+app.patch('/certificacoes-inscricoes/:id/respostas/:requisitoId', avaliarResposta)
+app.post('/certificacoes-inscricoes/:id/vistoria/:requisitoId', confirmarVistoria)
+app.post('/certificacoes-inscricoes/:id/concluir', concluirAnalise)
 app.put('/certificacoes-pagina', salvarPaginaCertificacoes)
 
 app.get('/certificados/pendentes', listarPendentes)

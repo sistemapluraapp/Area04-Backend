@@ -20,6 +20,8 @@ export type Bindings = {
   // Opcionais: sem eles o card de requisições mostra "aguardando token".
   CLOUDFLARE_ANALYTICS_TOKEN?: string
   CLOUDFLARE_ACCOUNT_ID?: string
+  // Arquivos das inscrições em certificações (mesmo bucket das Áreas 02/03)
+  CERTIFICACOES: R2Bucket
 }
 
 export interface AdminLogado {

@@ -17,6 +17,11 @@ id = "b2befdfef48047f1aa73bf4ee39b1459"
 binding = "HYPERDRIVE_GRUPO02"
 id = "a377c38cec284d50859ccdfa93046dba"
 
+# Arquivos das inscrições em certificações (8c/8d), mesmo bucket das Áreas 02/03
+[[r2_buckets]]
+binding = "CERTIFICACOES"
+bucket_name = "plura-certificacoes"
+
 [vars]
 SUPABASE_URL = "https://sbmvjrfswhbkioynrajd.supabase.co"
 # Anon/publishable key do grupo.02 — pública por design, protegida pelo RLS.
@@ -58,3 +63,7 @@ GRUPO01_SUPABASE_URL = "https://uoembacxxnkuwldmdgcu.supabase.co"
 EMAIL_REMETENTE = "Plura <nao-responda@plura.app.br>"
 AREA03_FRONTEND_URL = "https://teste.area03-frontend.pages.dev"
 AREA01_FRONTEND_URL = "https://teste.area01-frontend.pages.dev"
+
+[[env.teste.r2_buckets]]
+binding = "CERTIFICACOES"
+bucket_name = "plura-certificacoes-teste"
