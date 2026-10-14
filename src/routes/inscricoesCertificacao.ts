@@ -13,9 +13,9 @@ const DIAS_A_VENCER = 60
 const FILTROS: Record<string, string> = {
   fila: `i.status = 'enviada'`,
   andamento: `i.status = 'em_andamento'`,
-  certificadas: `i.status = 'aprovada' and (i.expira_em is null or i.expira_em > now() + interval '${DIAS_A_VENCER} days')`,
-  a_vencer: `i.status = 'aprovada' and i.expira_em between now() and now() + interval '${DIAS_A_VENCER} days'`,
-  vencidas: `i.status = 'aprovada' and i.expira_em < now()`,
+  certificadas: `i.status = 'aprovada' and i.renovada_por is null and (i.expira_em is null or i.expira_em > now() + interval '${DIAS_A_VENCER} days')`,
+  a_vencer: `i.status = 'aprovada' and i.renovada_por is null and i.expira_em between now() and now() + interval '${DIAS_A_VENCER} days'`,
+  vencidas: `i.status = 'aprovada' and i.renovada_por is null and i.expira_em < now()`,
   reprovadas: `i.status = 'reprovada'`,
   canceladas: `i.status = 'cancelada'`,
 }
@@ -34,7 +34,7 @@ export async function listarInscricoes(c: Context<AppEnv>) {
   const busca = (c.req.query('busca') ?? '').trim().slice(0, 100)
   const termo = `%${busca.replace(/[%_\\]/g, '\\$&')}%`
   const inscricoes = await sql`
-    select i.id, i.status, i.created_at, i.enviada_em, i.decidida_em, i.concedida_em, i.expira_em, i.analisada_por,
+    select i.id, i.status, i.created_at, i.enviada_em, i.decidida_em, i.concedida_em, i.expira_em, i.analisada_por, i.renova_id, i.avisos_renovacao,
       c.id as certificacao_id, c.titulo as certificacao_titulo, c.icone as certificacao_icone,
       p.id as pagina_id, p.nome as pagina_nome, p.tipo::text as pagina_tipo, p.cidade as pagina_cidade, p.uf as pagina_uf, p.logo_url as pagina_logo,
       (select count(*)::int from certificacao_respostas r where r.inscricao_id = i.id and r.status = 'enviada') as respostas_pendentes
@@ -159,4 +159,15 @@ export async function baixarArquivoInscricao(c: Context<AppEnv>) {
       'X-Content-Type-Options': 'nosniff',
     },
   })
+}
+
+// POST /certificacoes-inscricoes/:id/lembrete — lembrete manual de renovação (8f)
+export async function lembreteRenovacao(c: Context<AppEnv>) {
+  const sql = getDb(c.env)
+  try {
+    await sql`select adm_lembrete_renovacao(${c.req.param('id') as string}, ${c.get('admin').nome})`
+    return c.json({ ok: true })
+  } catch (err) {
+    return erroBanco(c, err)
+  }
 }

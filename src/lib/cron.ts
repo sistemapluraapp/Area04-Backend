@@ -64,11 +64,23 @@ export async function purgarPaginasExcluidas(env: Bindings) {
   }
 }
 
+// Certificações (8f): avisos de vencimento em 60, 30 e 7 dias e no dia que vence.
+// O banco cria o aviso no sino (com e-mail na fila) e marca a faixa como enviada.
+export async function avisarRenovacoesCertificacoes(env: Bindings) {
+  try {
+    const sql = getDb(env)
+    const [{ total }] = await sql`select adm_avisos_renovacao() as total`
+    if (total > 0) console.log(`Certificações: ${total} aviso(s) de renovação`)
+  } catch (err) {
+    console.error('Falha nos avisos de renovação de certificações:', err)
+  }
+}
+
 // Avisos de locais favoritos (Etapa 6b): o banco cria o aviso no sininho na
 // hora e deixa o e-mail na fila; aqui ele sai pelo Resend.
 export async function enviarAvisosFavoritos(env: Bindings) {
   const sql = getDb(env)
-  const pendentes = await sql`select * from internal.avisos_email_pendentes(100)`
+  const pendentes = await sql`select * from internal.avisos_email_pendentes_v2(100)`
   if (pendentes.length === 0) return
 
   const site = env.AREA01_FRONTEND_URL ?? 'https://plura.app.br'
@@ -79,15 +91,24 @@ export async function enviarAvisosFavoritos(env: Bindings) {
       continue
     }
     try {
+      const tipo = String(aviso.tipo ?? '')
       const nome = aviso.nome ? `, ${escaparHtml(String(aviso.nome).split(' ')[0])}` : ''
-      const corpo = `<p>Olá${nome}!</p><p>${escaparHtml(aviso.corpo ?? '')}</p><p style="font-size:13px;color:#667085">Você recebe este aviso porque favoritou este local na Plura. Para mudar, acesse seu perfil.</p>`
-      const link = aviso.pagina_id ? `${site}/pagina?id=${aviso.pagina_id}` : site
-      await enviarEmailObrigatorio(env.RESEND_API_KEY, aviso.email, aviso.titulo, montarAviso(aviso.titulo, corpo, { texto: 'Ver a página', link }), env.EMAIL_REMETENTE)
+      // Convites de equipe e certificações levam à área da página; favoritos, à página pública
+      const daEquipe = tipo.startsWith('convite_equipe') || tipo.startsWith('certificacao_')
+      const rodape = daEquipe
+        ? 'Você recebe este aviso porque faz parte da equipe desta página na Plura.'
+        : 'Você recebe este aviso porque favoritou este local na Plura. Para mudar, acesse seu perfil.'
+      const corpo = `<p>Olá${nome}!</p><p>${escaparHtml(aviso.corpo ?? '')}</p><p style="font-size:13px;color:#667085">${rodape}</p>`
+      const link = typeof aviso.link === 'string' && /^https:\/\//.test(aviso.link) ? aviso.link : aviso.pagina_id ? `${site}/pagina?id=${aviso.pagina_id}` : site
+      const botao = tipo.startsWith('certificacao_') ? 'Abrir certificação' : tipo.startsWith('convite_equipe') ? 'Abrir minhas páginas' : 'Ver a página'
+      await enviarEmailObrigatorio(env.RESEND_API_KEY, aviso.email, aviso.titulo, montarAviso(aviso.titulo, corpo, { texto: botao, link }), env.EMAIL_REMETENTE)
       enviados.push(aviso.id)
     } catch (err) {
       // Fica na fila e tenta de novo na próxima rodada (até 2 dias)
-      console.error('Falha ao enviar aviso de favorito:', err)
+      console.error('Falha ao enviar aviso por e-mail:', err)
     }
   }
-  if (enviados.length) await sql`select internal.marcar_avisos_email_enviados(${enviados}::uuid[])`
+  // postgres.js com fetch_types: false não serializa arrays JS: manda o literal do Postgres
+  const ids = enviados.filter((id) => /^[0-9a-f-]{36}$/i.test(id))
+  if (ids.length) await sql`select internal.marcar_avisos_email_enviados(${`{${ids.join(',')}}`}::uuid[])`
 }

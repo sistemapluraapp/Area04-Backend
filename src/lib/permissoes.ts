@@ -68,6 +68,7 @@ const DESCRICOES: { metodo: string; padrao: RegExp; descrever: (m: RegExpMatchAr
   { metodo: 'PUT', padrao: /^\/certificacoes-pagina$/, descrever: () => 'Editou a página de certificações' },
   { metodo: 'PATCH', padrao: /^\/certificacoes-inscricoes\/([^/]+)\/respostas\/([^/]+)$/, descrever: (m, b) => `Avaliou um requisito da inscrição ${m[1].slice(0, 8)}…: ${({ aprovada: 'aprovado', ajustes: 'ajustes pedidos', enviada: 'avaliação desfeita' } as Record<string, string>)[String(b?.status)] ?? '—'}` },
   { metodo: 'POST', padrao: /^\/certificacoes-inscricoes\/([^/]+)\/vistoria\/([^/]+)$/, descrever: (m, b) => `Confirmou vistoria da inscrição ${m[1].slice(0, 8)}… para ${t(b?.data) ?? '—'}` },
+  { metodo: 'POST', padrao: /^\/certificacoes-inscricoes\/([^/]+)\/lembrete$/, descrever: (m) => `Enviou lembrete de renovação da inscrição ${m[1].slice(0, 8)}…` },
   { metodo: 'POST', padrao: /^\/certificacoes-inscricoes\/([^/]+)\/concluir$/, descrever: (m, b, r) => `${b?.decisao === 'reprovar' ? 'Reprovou' : 'Concluiu a análise de'} a inscrição ${m[1].slice(0, 8)}…${r?.status ? ` (resultado: ${t(r.status)})` : ''}` },
   { metodo: 'POST', padrao: /^\/etiquetas$/, descrever: (_m, b) => `Criou a etiqueta "${t(b?.titulo) ?? '—'}"` },
   { metodo: 'PATCH', padrao: /^\/etiquetas\/([^/]+)$/, descrever: (m, b, r) => `Editou a etiqueta "${t(r?.titulo) ?? t(b?.titulo) ?? m[1]}"` },

@@ -1,4 +1,4 @@
-import { avaliarResposta, baixarArquivoInscricao, concluirAnalise, confirmarVistoria, listarInscricoes, obterInscricao } from './routes/inscricoesCertificacao'
+import { avaliarResposta, baixarArquivoInscricao, concluirAnalise, lembreteRenovacao, confirmarVistoria, listarInscricoes, obterInscricao } from './routes/inscricoesCertificacao'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { requireAuth } from './middleware/auth'
@@ -54,7 +54,7 @@ import {
   marcarLida,
   marcarTodasLidas,
 } from './routes/notificacoes'
-import { processarAvaliacoesSinalizadas, purgarPaginasExcluidas, enviarAvisosFavoritos } from './lib/cron'
+import { processarAvaliacoesSinalizadas, purgarPaginasExcluidas, enviarAvisosFavoritos, avisarRenovacoesCertificacoes } from './lib/cron'
 import { hookEmailGrupo01 } from './routes/emailHook'
 import { aceitarConviteAdmin, atualizarAdmin, cancelarConvite, convidarAdmin, exportarLogsCsv, listarAdmins, listarLogs, meuAcesso, reenviarConvite, verConviteAdmin } from './routes/admins'
 import { atualizarModelo, enviarTesteModelo, listarModelos, previaModelo } from './routes/comunicacao'
@@ -134,6 +134,7 @@ app.get('/certificacoes-inscricoes/:id/arquivo', baixarArquivoInscricao)
 app.patch('/certificacoes-inscricoes/:id/respostas/:requisitoId', avaliarResposta)
 app.post('/certificacoes-inscricoes/:id/vistoria/:requisitoId', confirmarVistoria)
 app.post('/certificacoes-inscricoes/:id/concluir', concluirAnalise)
+app.post('/certificacoes-inscricoes/:id/lembrete', lembreteRenovacao)
 app.put('/certificacoes-pagina', salvarPaginaCertificacoes)
 
 app.get('/certificados/pendentes', listarPendentes)
@@ -198,6 +199,6 @@ export default {
   scheduled: async (_event: ScheduledEvent, env: Bindings, ctx: ExecutionContext) => {
     ctx.waitUntil(processarAvaliacoesSinalizadas(env))
     ctx.waitUntil(purgarPaginasExcluidas(env))
-    ctx.waitUntil(enviarAvisosFavoritos(env))
+    ctx.waitUntil(avisarRenovacoesCertificacoes(env).then(() => enviarAvisosFavoritos(env)))
   },
 }
