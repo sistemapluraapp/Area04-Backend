@@ -358,13 +358,14 @@ export async function listarInscritosLanding(c: Context<AppEnv>) {
   const sql = getDb(c.env)
   const q = c.req.query()
   const onde = filtrosInscritos(sql, q)
-  const [lista, [total], [novos], paginas] = await Promise.all([
+  const [lista, [total], contagem, paginas] = await Promise.all([
     sql`select * from landing_form_submissions where ${onde} order by created_at desc limit 1000`,
     sql`select count(*)::int as n from landing_form_submissions where ${onde}`,
-    sql`select count(*)::int as n from landing_form_submissions where status = 'novo'`,
-    sql`select id, title from landing_pages order by title`,
+    sql`select status, count(*)::int as n from landing_form_submissions group by status`,
+    sql`select id, title from landing_pages order by sort_order`,
   ])
-  return c.json({ inscritos: lista, total: total.n, novos: novos.n, paginas })
+  const por_status = Object.fromEntries(contagem.map((r) => [r.status, r.n]))
+  return c.json({ inscritos: lista, total: total.n, novos: por_status.novo ?? 0, por_status, paginas })
 }
 
 // PATCH /landing/inscritos/:id { status, notes }
