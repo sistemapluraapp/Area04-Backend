@@ -22,6 +22,8 @@ export type Bindings = {
   CLOUDFLARE_ACCOUNT_ID?: string
   // Arquivos das inscrições em certificações (mesmo bucket das Áreas 02/03)
   CERTIFICACOES: R2Bucket
+  // Endereço público do backend da Área 01 (serve as imagens da landing)
+  AREA01_BACKEND_URL: string
 }
 
 export interface AdminLogado {

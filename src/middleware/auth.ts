@@ -37,7 +37,8 @@ export async function requireAuth(c: Context<AppEnv>, next: Next) {
   await next()
 
   // Log de toda ação que altera dados e deu certo
-  if (c.req.method !== 'GET' && c.res.status < 400) {
+  // (o salvamento automático do rascunho da landing não entra no log)
+  if (c.req.method !== 'GET' && c.res.status < 400 && !c.req.path.endsWith('/rascunho')) {
     const corpo = await c.req.json<Record<string, unknown>>().catch(() => null)
     const resposta = await c.res.clone().json<Record<string, unknown>>().catch(() => null)
     await registrarLog(c, descreverAcao(c.req.method, c.req.path, corpo, resposta), exigida)

@@ -1,3 +1,4 @@
+import { atualizarInscritoLanding, atualizarMetaLanding, atualizarMidiaLanding, criarPaginaLanding, csvInscritosLanding, duplicarPaginaLanding, enviarMidiaLanding, excluirInscritoLanding, excluirMidiaLanding, excluirPaginaLanding, garantirInicioLanding, listarInscritosLanding, listarMidiaLanding, listarPaginasLanding, listarVersoesLanding, metricasLanding, obterConfigLanding, obterPaginaLanding, obterVersaoLanding, publicarPaginaLanding, reordenarPaginasLanding, resumoLanding, salvarConfigLanding, salvarRascunhoLanding, statusPaginaLanding } from './routes/landing'
 import { avaliarResposta, baixarArquivoInscricao, concluirAnalise, lembreteRenovacao, confirmarVistoria, listarInscricoes, obterInscricao } from './routes/inscricoesCertificacao'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
@@ -135,6 +136,33 @@ app.patch('/certificacoes-inscricoes/:id/respostas/:requisitoId', avaliarRespost
 app.post('/certificacoes-inscricoes/:id/vistoria/:requisitoId', confirmarVistoria)
 app.post('/certificacoes-inscricoes/:id/concluir', concluirAnalise)
 app.post('/certificacoes-inscricoes/:id/lembrete', lembreteRenovacao)
+// Landing page de plura.app.br (Etapa 9)
+app.get('/landing/resumo', resumoLanding)
+app.get('/landing/paginas', listarPaginasLanding)
+app.post('/landing/paginas', criarPaginaLanding)
+app.post('/landing/paginas/inicio', garantirInicioLanding)
+app.put('/landing/paginas/ordem', reordenarPaginasLanding)
+app.get('/landing/paginas/:id', obterPaginaLanding)
+app.patch('/landing/paginas/:id', atualizarMetaLanding)
+app.delete('/landing/paginas/:id', excluirPaginaLanding)
+app.post('/landing/paginas/:id/duplicar', duplicarPaginaLanding)
+app.patch('/landing/paginas/:id/status', statusPaginaLanding)
+app.put('/landing/paginas/:id/rascunho', salvarRascunhoLanding)
+app.post('/landing/paginas/:id/publicar', publicarPaginaLanding)
+app.get('/landing/paginas/:id/versoes', listarVersoesLanding)
+app.get('/landing/versoes/:id', obterVersaoLanding)
+app.get('/landing/configuracoes', obterConfigLanding)
+app.patch('/landing/configuracoes', salvarConfigLanding)
+app.get('/landing/midia', listarMidiaLanding)
+app.post('/landing/midia', enviarMidiaLanding)
+app.patch('/landing/midia/:id', atualizarMidiaLanding)
+app.delete('/landing/midia/:id', excluirMidiaLanding)
+app.get('/landing/inscritos', listarInscritosLanding)
+app.get('/landing/inscritos/csv', csvInscritosLanding)
+app.patch('/landing/inscritos/:id', atualizarInscritoLanding)
+app.delete('/landing/inscritos/:id', excluirInscritoLanding)
+app.get('/landing/metricas', metricasLanding)
+
 app.put('/certificacoes-pagina', salvarPaginaCertificacoes)
 
 app.get('/certificados/pendentes', listarPendentes)
